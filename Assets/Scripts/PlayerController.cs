@@ -7,7 +7,7 @@ namespace SpringTime
     public class PlayerController : MonoBehaviour
     {
         #region Normal Variables
-        public float WindForce;
+        public float WindForce = 100f;
 
         private Rigidbody2D _rb;
         #endregion
@@ -51,7 +51,6 @@ namespace SpringTime
                 _fetchCommand();
                 _executeCommand();
             }
-
             ConsoleProDebug.Watch("Player Input Command", _currentCommand.ToString());
             ConsoleProDebug.Watch("Curretn Executing Command", _executingCommand.ToString());
         }
@@ -60,23 +59,23 @@ namespace SpringTime
         {
             if (!Input.anyKey)
             {
-                _recordCommand(CommandType.Empty, Time.time);
+                _recordCommand(CommandType.Empty, Time.timeSinceLevelLoad);
             }
             if (Input.GetKeyDown(KeyCode.A))
             {
-                _recordCommand(CommandType.Left, Time.time);
+                _recordCommand(CommandType.Left, Time.timeSinceLevelLoad);
             }
             if (Input.GetKeyDown(KeyCode.W))
             {
-                _recordCommand(CommandType.Up, Time.time);
+                _recordCommand(CommandType.Up, Time.timeSinceLevelLoad);
             }
             if (Input.GetKeyDown(KeyCode.D))
             {
-                _recordCommand(CommandType.Right, Time.time);
+                _recordCommand(CommandType.Right, Time.timeSinceLevelLoad);
             }
             if (Input.GetKeyDown(KeyCode.S))
             {
-                _recordCommand(CommandType.Down, Time.time);
+                _recordCommand(CommandType.Down, Time.timeSinceLevelLoad);
             }
         }
 
@@ -92,11 +91,8 @@ namespace SpringTime
         private void _fetchCommand()
         {
             // Don't fetch anymore command if _commandList is empty
-            if (_commandTimeList.Count <= 0)
-            {
-                _executingCommand = CommandType.Empty;
-                return;
-            }
+            if (_commandTimeList.Count <= 0) return;
+
             float nextTimeOnList = _commandTimeList[0];
             // Check if we are ready to fetch next command
             if (Mathf.Abs(_executionTime - nextTimeOnList) <= 0.05f)
