@@ -8,11 +8,13 @@ namespace SpringTime
     {
         #region Normal Variables
         public float WindForce = 100f;
+        public float MaxVelocity = 10f;
 
         private Rigidbody2D _rb;
         #endregion
 
         #region Command Related Variables
+        public float CommandDelayTime = 5f;
         private enum CommandType
         {
             Empty,
@@ -39,7 +41,7 @@ namespace SpringTime
             // Set up teh first command
             _recordCommand(_currentCommand, 0f);
             // Start the delay execution timer
-            StartCoroutine(_startExecutionAfterTime(5f));
+            StartCoroutine(_startExecutionAfterTime(CommandDelayTime));
         }
 
         // Update is called once per frame
@@ -51,8 +53,11 @@ namespace SpringTime
                 _fetchCommand();
                 _executeCommand();
             }
-            ConsoleProDebug.Watch("Player Input Command", _currentCommand.ToString());
-            ConsoleProDebug.Watch("Curretn Executing Command", _executingCommand.ToString());
+        }
+
+        private void FixedUpdate()
+        {
+            _rb.velocity = Vector2.ClampMagnitude(_rb.velocity, MaxVelocity);
         }
 
         private void _checkInput()
@@ -86,6 +91,7 @@ namespace SpringTime
             // Record the time and cmd in the list
             _commandList.Add(cmd);
             _commandTimeList.Add(time);
+            Debug.LogFormat("Adding Command {0} at Time {1}", cmd.ToString(), time);
         }
 
         private void _fetchCommand()
@@ -95,9 +101,10 @@ namespace SpringTime
 
             float nextTimeOnList = _commandTimeList[0];
             // Check if we are ready to fetch next command
-            if (Mathf.Abs(_executionTime - nextTimeOnList) <= 0.05f)
+            if (Mathf.Abs(_executionTime - nextTimeOnList) <= 0.01f)
             {
                 _executingCommand = _commandList[0];
+                Debug.LogFormat("Executing Command {0} at Time {1}", _executingCommand.ToString(), _executionTime);
                 _commandList.RemoveAt(0);
                 _commandTimeList.RemoveAt(0);
             }

@@ -196,6 +196,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   WindForce: 5
+  MaxVelocity: 2
+  CommandDelayTime: 0
 --- !u!1001 &392569239
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -904,7 +906,7 @@ TrailRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 5
   m_Time: 1
   m_Parameters:
     serializedVersion: 3
