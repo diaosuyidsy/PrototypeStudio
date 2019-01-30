@@ -96,19 +96,19 @@ namespace SpringTime
 
         private void _fetchCommand()
         {
+            _executionTime += Time.deltaTime;
             // Don't fetch anymore command if _commandList is empty
             if (_commandTimeList.Count <= 0) return;
 
             float nextTimeOnList = _commandTimeList[0];
             // Check if we are ready to fetch next command
-            if (Mathf.Abs(_executionTime - nextTimeOnList) <= 0.01f)
+            if (Mathf.Abs(_executionTime - nextTimeOnList) <= 0.05f)
             {
                 _executingCommand = _commandList[0];
                 Debug.LogFormat("Executing Command {0} at Time {1}", _executingCommand.ToString(), _executionTime);
                 _commandList.RemoveAt(0);
                 _commandTimeList.RemoveAt(0);
             }
-            _executionTime += Time.deltaTime;
         }
 
         // Execute command

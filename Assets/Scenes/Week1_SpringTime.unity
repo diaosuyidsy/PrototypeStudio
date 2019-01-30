@@ -197,7 +197,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WindForce: 5
   MaxVelocity: 2
-  CommandDelayTime: 0
+  CommandDelayTime: 2
 --- !u!1001 &392569239
 PrefabInstance:
   m_ObjectHideFlags: 0
