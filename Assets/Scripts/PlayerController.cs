@@ -61,19 +61,19 @@ namespace SpringTime
             {
                 _recordCommand(CommandType.Empty, Time.timeSinceLevelLoad);
             }
-            if (Input.GetKeyDown(KeyCode.A))
+            if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
             {
                 _recordCommand(CommandType.Left, Time.timeSinceLevelLoad);
             }
-            if (Input.GetKeyDown(KeyCode.W))
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
             {
                 _recordCommand(CommandType.Up, Time.timeSinceLevelLoad);
             }
-            if (Input.GetKeyDown(KeyCode.D))
+            if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
             {
                 _recordCommand(CommandType.Right, Time.timeSinceLevelLoad);
             }
-            if (Input.GetKeyDown(KeyCode.S))
+            if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
             {
                 _recordCommand(CommandType.Down, Time.timeSinceLevelLoad);
             }

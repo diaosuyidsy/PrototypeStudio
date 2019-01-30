@@ -21,5 +21,10 @@ namespace SpringTime
                 SceneManager.LoadScene("Week1_SpringTime");
             }
         }
+
+        public void OnCalculateScore()
+        {
+            SceneManager.LoadScene("Week1_SpringTime");
+        }
     }
 }
