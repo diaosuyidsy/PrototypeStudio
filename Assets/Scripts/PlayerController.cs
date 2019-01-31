@@ -47,7 +47,8 @@ namespace SpringTime
         // Update is called once per frame
         void Update()
         {
-            _checkInput();
+            if (!_startExecution)
+                _checkInput();
             if (_startExecution)
             {
                 _fetchCommand();
