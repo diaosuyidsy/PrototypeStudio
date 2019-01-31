@@ -21,6 +21,7 @@ namespace SpringTime
             if (_hasBloomed || !collision.CompareTag("Player")) return;
             _hasBloomed = true;
             StartCoroutine(_startToBloom(1f));
+            GameManager.GM.AddToObjective(1);
         }
 
         IEnumerator _startToBloom(float time)

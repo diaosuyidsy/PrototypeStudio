@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace SpringTime
 {
@@ -53,6 +54,7 @@ namespace SpringTime
             {
                 _fetchCommand();
                 _executeCommand();
+                _checkEndCritiria();
             }
         }
 
@@ -136,9 +138,25 @@ namespace SpringTime
             // Progress time
         }
 
+        private void _checkEndCritiria()
+        {
+            if (_rb.velocity.magnitude <= 0.1f && _commandTimeList.Count <= 0)
+            {
+                GameManager.GM.OnCalculateScore();
+            }
+        }
+
         IEnumerator _startExecutionAfterTime(float time)
         {
-            yield return new WaitForSeconds(time);
+            Text CountDownText = GameManager.GM.CountdownText;
+            float elapsedTime = time;
+            while (elapsedTime > 0f)
+            {
+                CountDownText.text = elapsedTime.ToString("F1");
+                elapsedTime -= Time.deltaTime;
+                yield return new WaitForEndOfFrame();
+            }
+            CountDownText.text = "0.0";
             _startExecution = true;
         }
     }
