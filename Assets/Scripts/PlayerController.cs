@@ -37,8 +37,7 @@ namespace SpringTime
             _commandTimeList = new List<float>();
             // Set up teh first command
             _recordCommand(_currentCommand, 0f);
-            // Start the delay execution timer
-            StartCoroutine(_startExecutionAfterTime(CommandDelayTime));
+
         }
 
         // Update is called once per frame
@@ -47,7 +46,8 @@ namespace SpringTime
             if (!_startExecution)
             {
                 _checkInput();
-                _generateCurCommandVisual();
+                if (GameManager.GM.State == GameManager.GameState.Record)
+                    _generateCurCommandVisual();
             }
             if (_startExecution)
             {
@@ -68,6 +68,12 @@ namespace SpringTime
             //{
             //    _recordCommand(CommandType.Empty, Time.timeSinceLevelLoad);
             //}
+            if (Input.anyKey && GameManager.GM.State == GameManager.GameState.Prepare)
+            {
+                // Start the delay execution timer
+                StartCoroutine(_startExecutionAfterTime(CommandDelayTime));
+                GameManager.GM.State = GameManager.GameState.Record;
+            }
             if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
             {
                 _recordCommand(CommandType.Left, Time.timeSinceLevelLoad);

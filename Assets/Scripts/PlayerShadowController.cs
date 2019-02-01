@@ -27,7 +27,7 @@ namespace SpringTime
 
         private void Update()
         {
-            //if (GameManager.GM.State != GameManager.GameState.Prepare) return;
+            if (GameManager.GM.State != GameManager.GameState.Record) return;
             _fetchCommand();
             _executeCommand();
         }
