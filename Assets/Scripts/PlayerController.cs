@@ -16,14 +16,7 @@ namespace SpringTime
 
         #region Command Related Variables
         public float CommandDelayTime = 5f;
-        private enum CommandType
-        {
-            Empty,
-            Up,
-            Down,
-            Left,
-            Right
-        }
+
         // Set the command current command to be something not empty
         private CommandType _currentCommand = CommandType.Up;
         private CommandType _executingCommand = CommandType.Empty;
@@ -31,6 +24,8 @@ namespace SpringTime
         private List<CommandType> _commandList;
         private bool _startExecution;
         private float _executionTime;
+        private GameObject _curCommandVisual = null;
+        private float _commandVisualTimer;
         #endregion
         // Start is called before the first frame update
         void Start()
@@ -49,7 +44,10 @@ namespace SpringTime
         void Update()
         {
             if (!_startExecution)
+            {
                 _checkInput();
+                _generateCurCommandVisual();
+            }
             if (_startExecution)
             {
                 _fetchCommand();
@@ -90,11 +88,36 @@ namespace SpringTime
         private void _recordCommand(CommandType cmd, float time = 0f)
         {
             if (cmd == _currentCommand) return;
+
+            // Record past command into Command Recorder
+            if (_currentCommand != CommandType.Empty)
+            {
+                CommandRecorder.CR.AddCommand(_currentCommand, time - _commandTimeList[_commandTimeList.Count - 1]);
+            }
             _currentCommand = cmd;
             // Record the time and cmd in the list
             _commandList.Add(cmd);
             _commandTimeList.Add(time);
-            Debug.LogFormat("Adding Command {0} at Time {1}", cmd.ToString(), time);
+
+            // Generate Current Command Record Visual
+            if (_currentCommand != CommandType.Empty)
+            {
+                _commandVisualTimer = 0f;
+                _curCommandVisual = Instantiate(CommandRecorder.CR.CommandVisualPrefab);
+                _curCommandVisual.transform.SetParent(CommandRecorder.CR.CurCommandContainer.transform, false);
+                _curCommandVisual.GetComponent<VisualCommandSetup>().Setup(_currentCommand, _commandVisualTimer);
+            }
+
+
+        }
+
+        private void _generateCurCommandVisual()
+        {
+            if (_curCommandVisual != null)
+            {
+                _commandVisualTimer += Time.deltaTime;
+                _curCommandVisual.GetComponent<VisualCommandSetup>().Setup(_commandVisualTimer);
+            }
         }
 
         private void _fetchCommand()
@@ -157,7 +180,21 @@ namespace SpringTime
                 yield return new WaitForEndOfFrame();
             }
             CountDownText.text = "0.0";
+            // Record past command into Command Recorder
+            if (_currentCommand != CommandType.Empty)
+            {
+                CommandRecorder.CR.AddCommand(_currentCommand, Time.timeSinceLevelLoad - _commandTimeList[_commandTimeList.Count - 1]);
+            }
             _startExecution = true;
         }
     }
+    public enum CommandType
+    {
+        Empty,
+        Up,
+        Down,
+        Left,
+        Right
+    }
 }
+

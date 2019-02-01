@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Objective
+  - PreCommand
+  - CurCommand
   layers:
   - Default
   - TransparentFX
