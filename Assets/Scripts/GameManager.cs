@@ -50,6 +50,7 @@ namespace SpringTime
 
         IEnumerator _calculating(float time)
         {
+            yield return new WaitForSeconds(2f);
             float elapsedTime = 0f;
             float targetPercentage = 100f * _finishedObjectiveAmount / _objectiveAmount;
 
