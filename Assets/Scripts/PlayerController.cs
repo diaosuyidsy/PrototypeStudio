@@ -63,10 +63,10 @@ namespace SpringTime
 
         private void _checkInput()
         {
-            if (!Input.anyKey)
-            {
-                _recordCommand(CommandType.Empty, Time.timeSinceLevelLoad);
-            }
+            //if (!Input.anyKey)
+            //{
+            //    _recordCommand(CommandType.Empty, Time.timeSinceLevelLoad);
+            //}
             if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
             {
                 _recordCommand(CommandType.Left, Time.timeSinceLevelLoad);

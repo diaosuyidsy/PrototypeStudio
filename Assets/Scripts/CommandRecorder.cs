@@ -47,14 +47,6 @@ namespace SpringTime
             // After Generation, reinit both list
             _prevCmdList = new List<CommandType>();
             _prevCmdTimesList = new List<float>();
-            //if (CurCommandContainer.transform.childCount > 0)
-            //{
-            //    for (int i = 0; i < CurCommandContainer.transform.childCount; i++)
-            //    {
-            //        GameObject go = Instantiate(CurCommandContainer.transform.GetChild(i).gameObject);
-            //        go.transform.SetParent(PreCommandContainer.transform, false);
-            //    }
-            //}
         }
 
         // This function is called each time player replay a level
