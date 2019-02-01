@@ -9,13 +9,14 @@ namespace SpringTime
     {
         public static CommandRecorder CR;
 
-        public GameObject PlayerShadow;
         public GameObject CurCommandContainer;
         public GameObject PreCommandContainer;
         public GameObject CommandVisualPrefab;
 
         private List<CommandType> _prevCmdList;
         private List<float> _prevCmdTimesList;
+        private List<CommandType> _prevCmdListCopy;
+        private List<float> _prevCmdTimesListCopy;
 
         private void Awake()
         {
@@ -25,8 +26,9 @@ namespace SpringTime
 
             _prevCmdList = new List<CommandType>();
             _prevCmdTimesList = new List<float>();
+            _prevCmdListCopy = new List<CommandType>();
+            _prevCmdTimesListCopy = new List<float>();
         }
-
 
         public void AddCommand(CommandType cmd, float time)
         {
@@ -36,7 +38,13 @@ namespace SpringTime
 
         private void _generateLastCommandListVisual()
         {
-            if (_prevCmdList.Count <= 0) return;
+            if (_prevCmdList.Count <= 0)
+            {
+                // Copy List
+                _prevCmdListCopy = _prevCmdList;
+                _prevCmdTimesListCopy = _prevCmdTimesList;
+                return;
+            }
             // If there is cmd, then generate visuals;
             for (int i = 0; i < _prevCmdList.Count; i++)
             {
@@ -44,6 +52,9 @@ namespace SpringTime
                 go.transform.SetParent(PreCommandContainer.transform, false);
                 go.GetComponent<VisualCommandSetup>().Setup(_prevCmdList[i], _prevCmdTimesList[i]);
             }
+            // Copy List
+            _prevCmdListCopy = _prevCmdList;
+            _prevCmdTimesListCopy = _prevCmdTimesList;
             // After Generation, reinit both list
             _prevCmdList = new List<CommandType>();
             _prevCmdTimesList = new List<float>();
@@ -57,7 +68,6 @@ namespace SpringTime
             _generateLastCommandListVisual();
         }
 
-
         void OnEnable()
         {
             SceneManager.sceneLoaded += _onNewLevelLoaded;
@@ -66,6 +76,14 @@ namespace SpringTime
         private void OnDisable()
         {
             SceneManager.sceneLoaded -= _onNewLevelLoaded;
+        }
+        public List<CommandType> GetPrevCmdList()
+        {
+            return new List<CommandType>(_prevCmdListCopy);
+        }
+        public List<float> GetPrevCmdTimesList()
+        {
+            return new List<float>(_prevCmdTimesListCopy);
         }
     }
 }

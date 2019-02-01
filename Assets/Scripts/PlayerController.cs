@@ -16,6 +16,7 @@ namespace SpringTime
 
         #region Command Related Variables
         public float CommandDelayTime = 5f;
+        public GameObject PlayerShadow;
 
         // Set the command current command to be something not empty
         private CommandType _currentCommand = CommandType.Up;
@@ -107,8 +108,6 @@ namespace SpringTime
                 _curCommandVisual.transform.SetParent(CommandRecorder.CR.CurCommandContainer.transform, false);
                 _curCommandVisual.GetComponent<VisualCommandSetup>().Setup(_currentCommand, _commandVisualTimer);
             }
-
-
         }
 
         private void _generateCurCommandVisual()
@@ -171,6 +170,11 @@ namespace SpringTime
 
         IEnumerator _startExecutionAfterTime(float time)
         {
+            // Generate a player shadow if this is not the first time
+            if (CommandRecorder.CR.GetPrevCmdList().Count > 0)
+                Instantiate(PlayerShadow, transform.position, Quaternion.identity);
+
+            // End Generation
             Text CountDownText = GameManager.GM.CountdownText;
             float elapsedTime = time;
             while (elapsedTime > 0f)
