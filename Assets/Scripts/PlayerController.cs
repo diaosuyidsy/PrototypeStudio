@@ -64,10 +64,6 @@ namespace SpringTime
 
         private void _checkInput()
         {
-            //if (!Input.anyKey)
-            //{
-            //    _recordCommand(CommandType.Empty, Time.timeSinceLevelLoad);
-            //}
             if (Input.anyKey && GameManager.GM.State == GameManager.GameState.Prepare)
             {
                 // Start the delay execution timer
