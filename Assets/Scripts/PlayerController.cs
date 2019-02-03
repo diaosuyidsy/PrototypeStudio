@@ -27,6 +27,7 @@ namespace SpringTime
         private float _executionTime;
         private GameObject _curCommandVisual = null;
         private float _commandVisualTimer;
+        private float _recordTime;
         #endregion
         // Start is called before the first frame update
         void Start()
@@ -70,21 +71,22 @@ namespace SpringTime
                 StartCoroutine(_startExecutionAfterTime(CommandDelayTime));
                 GameManager.GM.State = GameManager.GameState.Record;
             }
+            if (GameManager.GM.State == GameManager.GameState.Record) _recordTime += Time.deltaTime;
             if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
             {
-                _recordCommand(CommandType.Left, Time.timeSinceLevelLoad);
+                _recordCommand(CommandType.Left, _recordTime);
             }
             if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
             {
-                _recordCommand(CommandType.Up, Time.timeSinceLevelLoad);
+                _recordCommand(CommandType.Up, _recordTime);
             }
             if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
             {
-                _recordCommand(CommandType.Right, Time.timeSinceLevelLoad);
+                _recordCommand(CommandType.Right, _recordTime);
             }
             if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
             {
-                _recordCommand(CommandType.Down, Time.timeSinceLevelLoad);
+                _recordCommand(CommandType.Down, _recordTime);
             }
         }
 
@@ -189,7 +191,7 @@ namespace SpringTime
             // Record past command into Command Recorder
             if (_currentCommand != CommandType.Empty)
             {
-                CommandRecorder.CR.AddCommand(_currentCommand, Time.timeSinceLevelLoad - _commandTimeList[_commandTimeList.Count - 1]);
+                CommandRecorder.CR.AddCommand(_currentCommand, _recordTime - _commandTimeList[_commandTimeList.Count - 1]);
             }
             _startExecution = true;
         }
