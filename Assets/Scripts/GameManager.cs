@@ -11,9 +11,12 @@ namespace SpringTime
         public static GameManager GM;
         public Text CountdownText;
         public Text ResultText;
+        [HideInInspector]
+        public float LastFlowerBloomTime;
 
         private int _objectiveAmount;
         private int _finishedObjectiveAmount;
+
 
         public enum GameState
         {
