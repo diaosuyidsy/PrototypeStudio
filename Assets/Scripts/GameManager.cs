@@ -13,6 +13,7 @@ namespace SpringTime
         public Text ResultText;
         [HideInInspector]
         public float LastFlowerBloomTime;
+        public GameObject HintCanvas;
 
         private int _objectiveAmount;
         private int _finishedObjectiveAmount;
@@ -32,6 +33,7 @@ namespace SpringTime
             GM = this;
             State = GameState.Prepare;
             _objectiveAmount = GameObject.FindGameObjectsWithTag("Objective").Length;
+            HintCanvas.SetActive(true);
         }
 
         private void Update()

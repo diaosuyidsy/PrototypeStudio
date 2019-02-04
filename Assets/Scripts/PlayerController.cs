@@ -70,6 +70,7 @@ namespace SpringTime
                 // Start the delay execution timer
                 StartCoroutine(_startExecutionAfterTime(CommandDelayTime));
                 GameManager.GM.State = GameManager.GameState.Record;
+                GameManager.GM.HintCanvas.SetActive(false);
             }
             if (GameManager.GM.State == GameManager.GameState.Record) _recordTime += Time.deltaTime;
             if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
