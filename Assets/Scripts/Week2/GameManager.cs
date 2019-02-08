@@ -18,6 +18,8 @@ namespace Week2
 
         private int _clipPointer;
         private int _scriptPointer;
+        private int _chipCounter;
+        private int _cc;
         private AudioSource _as;
         private string[] _scriptTexts;
 
@@ -76,13 +78,22 @@ namespace Week2
                 // If script text starts with ";", skip audio
                 // Otherwise progress both
                 string st = _scriptTexts[_scriptPointer++];
-                if (st.Length == 0 || st[0] != ';')
+                if (st.Length != 0 && st[0] == ';')
                 {
+                    // Skip Audio
+                    st = st.Substring(1);
+                }
+                else if (st.Length != 0 && st[0] == '/')
+                {
+                    // cut string, add counter to it
+                    st = st.Substring(1);
+                    if (_chipCounter != 0 && _chipCounter % ChipEatingClips.Length == 0) st = string.Format(st, _chipCounter++ - ++_cc);
+                    else st = string.Format(st, _chipCounter++ - _cc);
                     _progressAudio();
                 }
                 else
                 {
-                    st = st.Substring(1);
+                    _progressAudio();
                 }
                 ScripterText.text = st;
             }
