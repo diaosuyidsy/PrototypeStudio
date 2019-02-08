@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
 
 namespace Week2
 {
@@ -12,6 +13,7 @@ namespace Week2
         public AudioClip[] ChipEatingClips;
         public TextAsset TextScript;
         public Text ScripterText;
+        public RectTransform Achievement;
 
         [HideInInspector]
         public State GameState;
@@ -89,6 +91,13 @@ namespace Week2
                     st = st.Substring(1);
                     if (_chipCounter != 0 && _chipCounter % ChipEatingClips.Length == 0) st = string.Format(st, _chipCounter++ - ++_cc);
                     else st = string.Format(st, _chipCounter++ - _cc);
+                    _progressAudio();
+                }
+                else if (st == "[Achievement]")
+                {
+                    st = "";
+                    Sequence sequence = DOTween.Sequence();
+                    sequence.Append(Achievement.DOAnchorPosY(586f, 0.25f)).AppendInterval(3f).Append(Achievement.DOAnchorPosY(900f, 0.25f));
                     _progressAudio();
                 }
                 else

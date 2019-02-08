@@ -22,7 +22,7 @@ LINES
 AFTER
 THIS.
 
-SERIOUSLY.
+I MEAN IT.
 
 
 
@@ -75,5 +75,4 @@ Okay, there is your achievement, your can literally stop now.
 /There is no point in eating {0} more chips
 /There is no point in eating {0} more chips
 /There is no point in eating {0} more chips
-
 XD. I thought I got you there.

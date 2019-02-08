@@ -666,6 +666,7 @@ MonoBehaviour:
   - {fileID: 8300000, guid: 2c5c8b3b1de2b4fdeb1c930b4f25c1ff, type: 3}
   TextScript: {fileID: 4900000, guid: 253430818ec8d4549bd8eddb4ca5b978, type: 3}
   ScripterText: {fileID: 861381379}
+  Achievement: {fileID: 1790505812}
   GameState: 0
 --- !u!1 &1634161895
 GameObject:
@@ -778,7 +779,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 53, y: -82}
+  m_AnchoredPosition: {x: 53, y: 901}
   m_SizeDelta: {x: 584.69995, y: 389.7}
   m_Pivot: {x: 1, y: 0}
 --- !u!114 &1790505813
