@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
+using UnityEngine.SceneManagement;
 
 namespace Week2
 {
@@ -99,6 +100,10 @@ namespace Week2
                     Sequence sequence = DOTween.Sequence();
                     sequence.Append(Achievement.DOAnchorPosY(586f, 0.25f)).AppendInterval(3f).Append(Achievement.DOAnchorPosY(900f, 0.25f));
                     _progressAudio();
+                }
+                else if (st == "[Exit]")
+                {
+                    SceneManager.LoadScene("Week2");
                 }
                 else
                 {
