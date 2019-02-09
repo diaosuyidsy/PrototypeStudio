@@ -357,14 +357,14 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 1
     m_MinSize: 0
-    m_MaxSize: 300
+    m_MaxSize: 56
     m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text: "Testing, Testing. If you can see this, please LEFT CLICK to continue.\r"
 --- !u!222 &861381380
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -889,7 +889,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Happy Clicking
+  m_Text: Happy Eating
 --- !u!222 &1948185812
 CanvasRenderer:
   m_ObjectHideFlags: 0

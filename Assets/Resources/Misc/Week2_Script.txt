@@ -1,19 +1,32 @@
-;Testing, Testing. If you can see this, please LEFT CLICK to continue.
-;HI THERE. LEFT CLICK to have ONE bag of chips, make yourself at home.
+;Welcome, Playtester.
+;Allow me to express my graditude in advance in playtesting my game, Chips Eater.
+;LEFT CLICK five times to eat ONE bag of chips, your quest is to eat three bags.
+;Now let's begin, shall we?
 
 
 
 
 Alright, that's one bag, wasn't hard, was it?
+There we go, another bag.
 
-Okay, ONE bag is ENOUGH.
+
+
+Two bags down and only one to go.
+Here we go, the last bag of chips.
+3
+2
+1
+You have successfully beaten the game! Thank you for partaking!
 
 OKAY, you can STOP eating now.
+The game is OVER, and I would like to interview you for some questions.
 Eating that much isn't going to help you in anyway.
+
 
 Another bag? LOL.
 Wait...
 Are you just clicking to see if there are more lines?
+
 THERE
 ARE
 NO
@@ -29,8 +42,7 @@ I MEAN IT.
 
 
 
-
-There is no achievement for this.
+Really. There is no achievement for this.
 
 
 
@@ -50,6 +62,16 @@ Okay, there is your achievement, your can literally stop now.
 
 
 
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
+/There is no point in eating {0} more chips
 /There is no point in eating {0} more chips
 /There is no point in eating {0} more chips
 /There is no point in eating {0} more chips
