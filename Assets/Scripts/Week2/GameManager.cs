@@ -15,6 +15,9 @@ namespace Week2
         public TextAsset TextScript;
         public Text ScripterText;
         public RectTransform Achievement;
+        public GameObject OpenButton;
+        public GameObject EatButton;
+        public Text Score;
 
         [HideInInspector]
         public State GameState;
@@ -25,6 +28,7 @@ namespace Week2
         private int _cc;
         private AudioSource _as;
         private string[] _scriptTexts;
+        private int _score;
 
         private void Awake()
         {
@@ -54,9 +58,30 @@ namespace Week2
         private void _checkInput()
         {
             if (GameState != State.Start) return;
-            if (Input.GetMouseButtonDown(0) && !_as.isPlaying)
+            //if (Input.GetMouseButtonDown(0) && !_as.isPlaying)
+            //{
+            //    _progressText();
+            //}
+        }
+
+        public void OpenButtonClicked()
+        {
+            if (_as.isPlaying) return;
+            _progressText();
+            EatButton.SetActive(true);
+            OpenButton.SetActive(false);
+        }
+
+        public void EatButtonClicked()
+        {
+            if (_as.isPlaying) return;
+            _progressText();
+            if (_clipPointer == 0)
             {
-                _progressText();
+                OpenButton.SetActive(true);
+                EatButton.SetActive(false);
+                _score++;
+                Score.text = _score.ToString();
             }
         }
 

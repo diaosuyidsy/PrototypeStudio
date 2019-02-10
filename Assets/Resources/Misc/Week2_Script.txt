@@ -1,29 +1,25 @@
-;Welcome, Playtester.
-;Allow me to express my graditude in advance in playtesting my game, Chips Eater.
-;LEFT CLICK five times to eat ONE bag of chips, your quest is to eat three bags.
-;Now let's begin, shall we?
+CLICK Yellow Button to Eat a Chip
+Each bag has 4 chips in it.
+
+
+Finish 3 bags to beat the game.
 
 
 
 
-Alright, that's one bag, wasn't hard, was it?
-There we go, another bag.
+1 Bag Left.
 
-
-
-Two bags down and only one to go.
-Here we go, the last bag of chips.
 3
 2
 1
-You have successfully beaten the game! Thank you for partaking!
+Game Over, You Won!
+
 
 OKAY, you can STOP eating now.
-The game is OVER, and I would like to interview you for some questions.
+You have already beaten the game. You WON.
 
-Eating that much isn't going to help you in anyway.
 
-Another bag? LOL.
+Another bag?
 You know this is just a game, right?
 
 That no one will EVER cheer for you even if you eat thousands of chips.
