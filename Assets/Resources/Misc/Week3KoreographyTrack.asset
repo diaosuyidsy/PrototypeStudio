@@ -1,0 +1,169 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1223223985, guid: aa81bbec85a3f423193272a7c6154986, type: 3}
+  m_Name: Week3KoreographyTrack
+  m_EditorClassIdentifier: 
+  mEventID: TestEventID
+  mEventList:
+  - mStartSample: 264600
+    mEndSample: 264600
+  - mStartSample: 286650
+    mEndSample: 286650
+  - mStartSample: 573300
+    mEndSample: 573300
+  - mStartSample: 639450
+    mEndSample: 639450
+  - mStartSample: 705600
+    mEndSample: 705600
+  - mStartSample: 749700
+    mEndSample: 749700
+  - mStartSample: 771750
+    mEndSample: 771750
+  - mStartSample: 815850
+    mEndSample: 815850
+  - mStartSample: 859950
+    mEndSample: 859950
+  - mStartSample: 882000
+    mEndSample: 882000
+  - mStartSample: 926100
+    mEndSample: 926100
+  - mStartSample: 992250
+    mEndSample: 992250
+  - mStartSample: 1036350
+    mEndSample: 1036350
+  - mStartSample: 1102500
+    mEndSample: 1102500
+  - mStartSample: 1168650
+    mEndSample: 1168650
+  - mStartSample: 1300950
+    mEndSample: 1300950
+  - mStartSample: 1411200
+    mEndSample: 1411200
+  - mStartSample: 1499400
+    mEndSample: 1499400
+  - mStartSample: 1631700
+    mEndSample: 1631700
+  - mStartSample: 1653750
+    mEndSample: 1653750
+  - mStartSample: 1741950
+    mEndSample: 1741950
+  - mStartSample: 1764000
+    mEndSample: 1764000
+  - mStartSample: 1874250
+    mEndSample: 1874250
+  - mStartSample: 2006550
+    mEndSample: 2006550
+  - mStartSample: 2094750
+    mEndSample: 2094750
+  - mStartSample: 2205000
+    mEndSample: 2205000
+  - mStartSample: 2315250
+    mEndSample: 2315250
+  - mStartSample: 2337300
+    mEndSample: 2337300
+  - mStartSample: 2425500
+    mEndSample: 2425500
+  - mStartSample: 2447550
+    mEndSample: 2447550
+  - mStartSample: 2557800
+    mEndSample: 2557800
+  - mStartSample: 2668050
+    mEndSample: 2668050
+  - mStartSample: 2778300
+    mEndSample: 2778300
+  - mStartSample: 2888550
+    mEndSample: 2888550
+  - mStartSample: 2954700
+    mEndSample: 2954700
+  - mStartSample: 2998800
+    mEndSample: 2998800
+  - mStartSample: 3020850
+    mEndSample: 3020850
+  - mStartSample: 3064950
+    mEndSample: 3064950
+  - mStartSample: 3109050
+    mEndSample: 3109050
+  - mStartSample: 3131100
+    mEndSample: 3131100
+  - mStartSample: 3175200
+    mEndSample: 3175200
+  - mStartSample: 3241350
+    mEndSample: 3241350
+  - mStartSample: 3285450
+    mEndSample: 3285450
+  - mStartSample: 3351600
+    mEndSample: 3351600
+  - mStartSample: 3373650
+    mEndSample: 3373650
+  - mStartSample: 3395700
+    mEndSample: 3395700
+  - mStartSample: 3417750
+    mEndSample: 3417750
+  - mStartSample: 3439800
+    mEndSample: 3439800
+  - mStartSample: 3461850
+    mEndSample: 3461850
+  - mStartSample: 3483900
+    mEndSample: 3483900
+  - mStartSample: 3505950
+    mEndSample: 3505950
+  - mStartSample: 3528000
+    mEndSample: 3528000
+  - mStartSample: 3572100
+    mEndSample: 3572100
+  - mStartSample: 3682350
+    mEndSample: 3682350
+  - mStartSample: 3704400
+    mEndSample: 3704400
+  - mStartSample: 3792600
+    mEndSample: 3792600
+  - mStartSample: 3814650
+    mEndSample: 3814650
+  - mStartSample: 3924900
+    mEndSample: 3924900
+  - mStartSample: 4035150
+    mEndSample: 4035150
+  - mStartSample: 4145400
+    mEndSample: 4145400
+  - mStartSample: 4255650
+    mEndSample: 4255650
+  - mStartSample: 4365900
+    mEndSample: 4365900
+  - mStartSample: 4387950
+    mEndSample: 4387950
+  - mStartSample: 4476150
+    mEndSample: 4476150
+  - mStartSample: 4498200
+    mEndSample: 4498200
+  - mStartSample: 4608450
+    mEndSample: 4608450
+  - mStartSample: 4718700
+    mEndSample: 4718700
+  - mStartSample: 4828950
+    mEndSample: 4828950
+  - mStartSample: 4961250
+    mEndSample: 4961250
+  _SerializedPayloadTypes: []
+  _ColorPayloads: []
+  _ColorPayloadIdxs: 
+  _CurvePayloads: []
+  _CurvePayloadIdxs: 
+  _FloatPayloads: []
+  _FloatPayloadIdxs: 
+  _GradientPayloads: []
+  _GradientPayloadIdxs: 
+  _IntPayloads: []
+  _IntPayloadIdxs: 
+  _SpectrumPayloads: []
+  _SpectrumPayloadIdxs: 
+  _TextPayloads: []
+  _TextPayloadIdxs: 
