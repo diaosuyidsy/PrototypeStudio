@@ -15,6 +15,10 @@ namespace Week3
 		{
 			AM = this;
 			_audioSource = GetComponent<AudioSource>();
+		}
+
+		public void StartAudioWithDelay()
+		{
 			_audioSource.PlayDelayed(DelayedTime);
 		}
 	}

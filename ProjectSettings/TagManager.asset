@@ -8,6 +8,8 @@ TagManager:
   - PreCommand
   - CurCommand
   - PlayerShadow
+  - TriggerPoint
+  - KeyNote
   layers:
   - Default
   - TransparentFX

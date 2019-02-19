@@ -5,15 +5,17 @@ namespace Week3
 {
 	public class EventSubscriber : MonoBehaviour
 	{
+
 		// Start is called before the first frame update
 		void Start()
 		{
-			Koreographer.Instance.RegisterForEvents("TestEventID", FireEventDebugLog);
+			Koreographer.Instance.RegisterForEvents("TestEventID", FireKeyNote);
+
 		}
 
-		private void FireEventDebugLog(KoreographyEvent koreoEvent)
+		private void FireKeyNote(KoreographyEvent koreoEvent)
 		{
-			Debug.Log(Time.timeSinceLevelLoad);
+
 		}
 	}
 }
