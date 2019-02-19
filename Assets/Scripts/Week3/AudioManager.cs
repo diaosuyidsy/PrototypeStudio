@@ -10,6 +10,7 @@ namespace Week3
 		public static AudioManager AM;
 		public float DelayedTime = 5f;
 		public GameObject Koreographer;
+		public AudioClip KillSound;
 
 		private AudioSource _audioSource;
 
@@ -23,6 +24,12 @@ namespace Week3
 		{
 			Koreographer.SetActive(true);
 			_audioSource.PlayDelayed(DelayedTime);
+		}
+
+		public void StartKillSound()
+		{
+			_audioSource.clip = KillSound;
+			_audioSource.Play();
 		}
 	}
 }

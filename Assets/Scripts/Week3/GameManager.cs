@@ -17,6 +17,7 @@ namespace Week3
 		public Transform TriggerPoint;
 		public GameObject KeyNotePrefab;
 		public Text CountDownText;
+		public GameObject Background;
 
 		private GameObject[] NPCs;
 		private GameObject Player;
@@ -81,6 +82,9 @@ namespace Week3
 		IEnumerator StartOver(float time)
 		{
 			yield return new WaitForSeconds(time);
+			Background.SetActive(true);
+			AudioManager.AM.StartKillSound();
+			yield return new WaitForSeconds(2f);
 			SceneManager.LoadScene("Week3_America");
 		}
 	}
