@@ -10,6 +10,7 @@ TagManager:
   - PlayerShadow
   - TriggerPoint
   - KeyNote
+  - OtherNPC
   layers:
   - Default
   - TransparentFX
