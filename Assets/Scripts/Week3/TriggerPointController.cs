@@ -43,6 +43,7 @@ namespace Week3
 					else
 					{
 						GameManager.GM.OnKeyNoteMissed();
+						GameManager.GM.NPCSayFreedom();
 					}
 				}
 				else
@@ -57,6 +58,7 @@ namespace Week3
 			if (collision.transform.CompareTag("KeyNote"))
 			{
 				GameManager.GM.OnKeyNoteMissed();
+				GameManager.GM.NPCSayFreedom();
 			}
 		}
 	}

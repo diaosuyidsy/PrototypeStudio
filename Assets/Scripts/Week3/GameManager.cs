@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using SonicBloom.Koreo;
-using DG.Tweening;
+using UnityEngine.SceneManagement;
 
 namespace Week3
 {
@@ -18,11 +18,16 @@ namespace Week3
 		public GameObject KeyNotePrefab;
 		public Text CountDownText;
 
+		private GameObject[] NPCs;
+		private GameObject Player;
+
 		private void Awake()
 		{
 			GM = this;
 			State = GameState.PreStart;
 			KeyNoteDistance = Mathf.Abs(TriggerPoint.position.x - KeyNoteGenerationPoint.position.x);
+			NPCs = GameObject.FindGameObjectsWithTag("OtherNPC");
+			Player = GameObject.FindGameObjectWithTag("Player");
 		}
 
 		public void StartGame()
@@ -31,7 +36,6 @@ namespace Week3
 			StartCoroutine(StartCountDown(5f));
 			AudioManager.AM.StartAudioWithDelay();
 			Koreographer.Instance.RegisterForEvents("TestEventID", FireKeyNote);
-
 		}
 
 		IEnumerator StartCountDown(float time)
@@ -51,16 +55,33 @@ namespace Week3
 		public void OnKeyNoteMissed()
 		{
 			print("You just fucking missed");
+			Player.SendMessage("SayAntiFreedom");
+			StartCoroutine(StartOver(2f));
 		}
 
 		public void OnKeyNoteHitSuccessful()
 		{
-			print("Successful Hit");
+			NPCSayFreedom();
+			Player.SendMessage("SpeakForFreedom");
+		}
+
+		public void NPCSayFreedom()
+		{
+			foreach (var npc in NPCs)
+			{
+				npc.SendMessage("SpeakForFreedom");
+			}
 		}
 
 		private void FireKeyNote(KoreographyEvent koreoEvent)
 		{
 			Instantiate(KeyNotePrefab, KeyNoteGenerationPoint.transform.position, KeyNotePrefab.transform.rotation);
+		}
+
+		IEnumerator StartOver(float time)
+		{
+			yield return new WaitForSeconds(time);
+			SceneManager.LoadScene("Week3_America");
 		}
 	}
 
