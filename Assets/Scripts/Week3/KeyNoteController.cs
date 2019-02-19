@@ -41,7 +41,8 @@ namespace Week3
 
 		private void Update()
 		{
-			transform.position -= new Vector3(Speed * Time.deltaTime, 0f);
+			if (GameManager.GM.State == GameState.Start)
+				transform.position -= new Vector3((GameManager.GM.KeyNoteDistance / AudioManager.AM.DelayedTime) * Time.deltaTime, 0f);
 		}
 
 	}

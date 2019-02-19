@@ -10,9 +10,12 @@ namespace Week3
 		void Start()
 		{
 			Koreographer.Instance.RegisterForEvents("TestEventID", FireKeyNote);
-
 		}
 
+		public void OnGameStart()
+		{
+
+		}
 		private void FireKeyNote(KoreographyEvent koreoEvent)
 		{
 
