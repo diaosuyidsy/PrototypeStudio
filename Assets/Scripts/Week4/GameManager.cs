@@ -9,6 +9,7 @@ namespace Week4
 		public static GameManager GM;
 
 		public bool[] LaneRed;
+		public Transform[] LaneWaypointHolders;
 
 		private void Awake()
 		{
