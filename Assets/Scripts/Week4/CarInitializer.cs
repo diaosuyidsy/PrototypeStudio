@@ -8,7 +8,7 @@ using Week4;
 public class CarInitializer : MonoBehaviour
 {
 	#region Publicly Set Variables
-	[Tooltip("Starts with 1")]
+	[Tooltip("Starts with 0")]
 	public int LaneNum;
 	#endregion
 
@@ -18,16 +18,16 @@ public class CarInitializer : MonoBehaviour
 
 	private void Start()
 	{
-		PatrolPointsHolder = GameManager.GM.LaneWaypointHolders[LaneNum - 1];
+		PatrolPointsHolder = GameManager.GM.LaneWaypointHolders[LaneNum];
 		_bt = GetComponent<BehaviorTree>();
 		_pps = new List<GameObject>();
+		List<GameObject> PP = new List<GameObject>();
 		for (int i = 0; i < PatrolPointsHolder.childCount; i++)
 		{
-			GameObject go = new GameObject();
-			go.transform.position = PatrolPointsHolder.GetChild(i).position;
-			_pps.Add(go);
+			PP.Add(PatrolPointsHolder.GetChild(i).gameObject);
 		}
-		_bt.SetVariableValue("Patrol Points", _pps);
+		_bt.SetVariableValue("Patrol Points", PP);
+		_bt.SetVariableValue("LaneNumber", LaneNum);
 	}
 
 }

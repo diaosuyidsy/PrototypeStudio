@@ -76,7 +76,6 @@ namespace BehaviorDesigner.Runtime.Tasks.Movement
 						waypointIndex.Value = (waypointIndex.Value + 1) % waypoints.Value.Count;
 						if (waypointIndex.Value == 0f)
 						{
-							gameObject.SetActive(false);
 							return TaskStatus.Success;
 						}
 					}
