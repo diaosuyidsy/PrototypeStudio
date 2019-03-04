@@ -10,6 +10,8 @@ public class PedInitializer : MonoBehaviour
 	#region Publicly Set Variables
 	[Tooltip("Starts with 0")]
 	public int LaneNum;
+	public GameObject Normal;
+	public GameObject Ragdoll;
 	#endregion
 
 	private Transform PatrolPointsHolder;
@@ -18,6 +20,7 @@ public class PedInitializer : MonoBehaviour
 
 	private void Start()
 	{
+		RandomizeLook();
 		PatrolPointsHolder = GameManager.GM.PedLaneWaypointHolders[LaneNum];
 		_bt = GetComponent<BehaviorTree>();
 		_pps = new List<GameObject>();
@@ -30,10 +33,19 @@ public class PedInitializer : MonoBehaviour
 		_bt.SetVariableValue("LaneNumber", LaneNum);
 	}
 
+	private void RandomizeLook()
+	{
+		int rand = Random.Range(1, 51);
+		Normal.transform.GetChild(rand).gameObject.SetActive(true);
+		Ragdoll.transform.GetChild(rand).gameObject.SetActive(true);
+	}
+
 	private void OnCollisionEnter(Collision collision)
 	{
 		if (collision.collider.CompareTag("Car"))
 		{
+			GameObject a = Instantiate(Ragdoll, transform.position, transform.rotation);
+			a.SetActive(true);
 			Destroy(gameObject);
 		}
 	}

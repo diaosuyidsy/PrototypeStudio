@@ -36,6 +36,7 @@ public class CarInitializer : MonoBehaviour
 		if (collision.collider.CompareTag("Car"))
 		{
 			Instantiate(ExplosionVFX, transform.position, ExplosionVFX.transform.rotation);
+			Camera.main.GetComponent<CameraShake>().shakeDuration = 0.4f;
 			Destroy(gameObject);
 		}
 	}

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Week4
 {
@@ -12,7 +13,7 @@ namespace Week4
 		public bool[] LaneRed;
 		public Transform[] LaneWaypointHolders;
 		public Transform[] PedLaneWaypointHolders;
-		public GameObject CarPrefab;
+		public GameObject[] CarPrefabs;
 		public GameObject PedPrefab;
 
 		private void Awake()
@@ -21,11 +22,20 @@ namespace Week4
 			gamestate = GameState.Prepare;
 		}
 
+		private void Update()
+		{
+			if (Input.GetKeyDown(KeyCode.R))
+			{
+				SceneManager.LoadScene("Week4_Crowd");
+			}
+		}
+
 		private void _SpawnOneCar()
 		{
 			// Spawn from a lane from 0-7
 			int lane = Random.Range(0, 8);
-			GameObject car = Instantiate(CarPrefab, LaneWaypointHolders[lane].position, Quaternion.Euler(0f, _uglyFunction(lane), 0f));
+			int prefabrand = Random.Range(0, CarPrefabs.Length);
+			GameObject car = Instantiate(CarPrefabs[prefabrand], LaneWaypointHolders[lane].position, Quaternion.Euler(0f, _uglyFunction(lane), 0f));
 			car.GetComponent<CarInitializer>().LaneNum = lane++;
 		}
 
