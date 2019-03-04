@@ -13,7 +13,7 @@ public class SomethingInFront : Conditional
 	public override TaskStatus OnUpdate()
 	{
 		RaycastHit hit;
-		if (Physics.Raycast(transform.position, transform.forward, out hit, viewDistance.Value, objectLayerMask))
+		if (Physics.SphereCast(transform.position, 0.5f, transform.forward, out hit, viewDistance.Value, objectLayerMask))
 		{
 			if (hit.collider.CompareTag(targetTag.Value)) return TaskStatus.Success;
 		}

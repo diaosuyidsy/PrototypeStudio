@@ -12,6 +12,7 @@ TagManager:
   - KeyNote
   - OtherNPC
   - Car
+  - Pedestrain
   layers:
   - Default
   - TransparentFX
@@ -22,7 +23,7 @@ TagManager:
   - 
   - 
   - Veh
-  - 
+  - Ped
   - 
   - 
   - 

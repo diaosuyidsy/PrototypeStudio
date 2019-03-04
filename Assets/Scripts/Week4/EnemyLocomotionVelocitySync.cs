@@ -37,11 +37,10 @@ public class EnemyLocomotionVelocitySync : MonoBehaviour
 		if (Time.deltaTime > 1e-5f)
 			velocity = _smoothDeltaPosition / Time.deltaTime;
 
-		velocity /= 4f;
 		// Update animation parameters
-		_animator.SetFloat("InputHorizontal", velocity.x);
-		_animator.SetFloat("InputVertical", velocity.y);
-		_animator.SetFloat("InputMagnitude", velocity.magnitude);
+		//_animator.SetFloat("InputHorizontal", velocity.x);
+		//_animator.SetFloat("InputVertical", velocity.y);
+		_animator.SetFloat("InputMagnitude", 0.5f);
 	}
 
 	private void OnAnimatorMove()

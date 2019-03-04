@@ -5,12 +5,11 @@ using BehaviorDesigner.Runtime;
 using Week4;
 
 [RequireComponent(typeof(BehaviorTree))]
-public class CarInitializer : MonoBehaviour
+public class PedInitializer : MonoBehaviour
 {
 	#region Publicly Set Variables
 	[Tooltip("Starts with 0")]
 	public int LaneNum;
-	public GameObject ExplosionVFX;
 	#endregion
 
 	private Transform PatrolPointsHolder;
@@ -19,7 +18,7 @@ public class CarInitializer : MonoBehaviour
 
 	private void Start()
 	{
-		PatrolPointsHolder = GameManager.GM.LaneWaypointHolders[LaneNum];
+		PatrolPointsHolder = GameManager.GM.PedLaneWaypointHolders[LaneNum];
 		_bt = GetComponent<BehaviorTree>();
 		_pps = new List<GameObject>();
 		List<GameObject> PP = new List<GameObject>();
@@ -35,7 +34,6 @@ public class CarInitializer : MonoBehaviour
 	{
 		if (collision.collider.CompareTag("Car"))
 		{
-			Instantiate(ExplosionVFX, transform.position, ExplosionVFX.transform.rotation);
 			Destroy(gameObject);
 		}
 	}
