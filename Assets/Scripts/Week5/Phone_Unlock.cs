@@ -43,6 +43,7 @@ namespace Week5
 
 		IEnumerator StartScreen(float time)
 		{
+			PhoneExit.gameObject.SetActive(true);
 			float elapsedTime = 0f;
 			float initialColorAlpha = 0f;
 			while (elapsedTime <= time)
@@ -56,7 +57,7 @@ namespace Week5
 				yield return new WaitForEndOfFrame();
 			}
 			PhoneExit.SetTrigger("PhoneExit");
-			StartCoroutine(SetInactive(0.8f));
+			//StartCoroutine(SetInactive(0.8f));
 		}
 
 		IEnumerator SetInactive(float time)
