@@ -53,7 +53,6 @@ namespace Week5
 				temp.a = a;
 				FinalScreen.color = temp;
 				elapsedTime += Time.deltaTime;
-				print(elapsedTime);
 				yield return new WaitForEndOfFrame();
 			}
 			PhoneExit.SetTrigger("PhoneExit");
