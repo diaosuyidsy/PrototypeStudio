@@ -150,24 +150,18 @@ namespace Rewired.Utils {
         public string XboxOneInput_GetControllerType(ulong xboxControllerId) { return XboxOneInput.GetControllerType(xboxControllerId); }
 
         public uint XboxOneInput_GetJoystickId(ulong xboxControllerId) { return XboxOneInput.GetJoystickId(xboxControllerId); }
-        
-        private bool _xboxOne_gamepadDLLException;
 
         public void XboxOne_Gamepad_UpdatePlugin() {
 #if !REWIRED_XBOXONE_DISABLE_VIBRATION
-            if(_xboxOne_gamepadDLLException) return;
             try {
                 Ext_Gamepad_UpdatePlugin();
             } catch {
-                UnityEngine.Debug.LogError("Rewired: An exception occurred updating vibration. Gamepad vibration will not function. Did you install the required Gamepad.dll dependency? See Special Platforms - Xbox One in the documentation for information.");
-                _xboxOne_gamepadDLLException = true;
             }
 #endif
         }
 
         public bool XboxOne_Gamepad_SetGamepadVibration(ulong xboxOneJoystickId, float leftMotor, float rightMotor, float leftTriggerLevel, float rightTriggerLevel) {
 #if !REWIRED_XBOXONE_DISABLE_VIBRATION
-            if(_xboxOne_gamepadDLLException) return false;
             try {
                 return Ext_Gamepad_SetGamepadVibration(xboxOneJoystickId, leftMotor, rightMotor, leftTriggerLevel, rightTriggerLevel);
             } catch {
@@ -180,7 +174,6 @@ namespace Rewired.Utils {
 
         public void XboxOne_Gamepad_PulseVibrateMotor(ulong xboxOneJoystickId, int motorInt, float startLevel, float endLevel, ulong durationMS) {
 #if !REWIRED_XBOXONE_DISABLE_VIBRATION
-            if(_xboxOne_gamepadDLLException) return;
             Rewired.Platforms.XboxOne.XboxOneGamepadMotorType motor = (Rewired.Platforms.XboxOne.XboxOneGamepadMotorType)motorInt;
             try {
                 switch(motor) {
@@ -399,7 +392,7 @@ namespace Rewired.Utils {
 
         private readonly UnityEngine.PS4.PS4Input.ControllerInformation _controllerInformation = new UnityEngine.PS4.PS4Input.ControllerInformation();
 
-        public void PS4Input_GetSpecialControllerInformation(int id, int padIndex, object controllerInformation) {
+        public void GetSpecialControllerInformation(int id, int padIndex, object controllerInformation) {
             if(controllerInformation == null) throw new System.ArgumentNullException("controllerInformation");
             Rewired.Platforms.PS4.Internal.ControllerInformation tControllerInformation = controllerInformation as Rewired.Platforms.PS4.Internal.ControllerInformation;
             if(tControllerInformation == null) throw new System.ArgumentException("controllerInformation is not the correct type.");
@@ -529,7 +522,7 @@ namespace Rewired.Utils {
 
 #if UNITY_2018_PLUS
 
-        public void PS4Input_GetSpecialControllerInformation(int id, int padIndex, object controllerInformation) { }
+        public void GetSpecialControllerInformation(int id, int padIndex, object controllerInformation) { }
 
         public Vector3 PS4Input_SpecialGetLastAcceleration(int id) { return Vector3.zero; }
 

@@ -11618,14 +11618,6 @@
             listening will have no effect until the mapper is started again.
             </summary>
         </member>
-        <member name="P:Rewired.InputMapper.mappingContext">
-            <summary>
-            Gets the mapping Context object. This allows you to see the current mapping
-            context being used while the mapper is listening. You cannot change any settings
-            in the mapping context. To change mapping contexts, restart input mapper with a
-            new context. If the mapper is idle, this value will be null.
-            </summary>
-        </member>
         <member name="P:Rewired.InputMapper.status">
             <summary>
             The current status of the mapper.
@@ -11692,11 +11684,6 @@
             Creates a shallow copy of this object.
             </summary>
             <returns>A shallow copy of this object.</returns>
-        </member>
-        <member name="M:Rewired.InputMapper.Context.MakeReadOnly">
-            <summary>
-            Prevents context from being changed.
-            </summary>
         </member>
         <member name="M:Rewired.InputMapper.Context.Copy(Rewired.InputMapper.Context,Rewired.InputMapper.Context)">
             <summary>
@@ -11893,13 +11880,6 @@
         <member name="P:Rewired.InputMapper.Options.allowButtons">
             <summary>
             Should buttons be polled for user input?
-            </summary>
-        </member>
-        <member name="P:Rewired.InputMapper.Options.allowButtonsOnFullAxisAssignment">
-            <summary>
-            Should buttons be polled when making a full-axis assignment?
-            If allowed, buttons will be assigned to the positive axis range of the Action.
-            If not allowed, button input will be ignored when making a full-axis assignment.
             </summary>
         </member>
         <member name="P:Rewired.InputMapper.Options.timeout">
@@ -16450,6 +16430,21 @@
         <member name="T:Rewired.Platforms.PS4.Internal.LoggedInUser">
             <exclude></exclude>
         </member>
+        <member name="T:Rewired.Platforms.PS4.Internal.ControllerInformation">
+            <exclude></exclude>
+        </member>
+        <member name="T:Rewired.Platforms.PS4.Internal.PadControllerInformation">
+            <exclude></exclude>
+        </member>
+        <member name="T:Rewired.Platforms.PS4.Internal.PadDeviceClassExtendedInformation">
+            <exclude></exclude>
+        </member>
+        <member name="T:Rewired.Platforms.PS4.Internal.PadStickInformation">
+            <exclude></exclude>
+        </member>
+        <member name="T:Rewired.Platforms.PS4.Internal.PadTouchPadInformation">
+            <exclude></exclude>
+        </member>
         <member name="T:Rewired.Platforms.PS4.PS4ControllerExtension">
             <summary>
             Allows access to controller-specific functions.
@@ -16970,12 +16965,7 @@
         </member>
         <member name="E:Rewired.ReInput.ApplicationRunInBackgroundChangedEvent">
             <summary>
-            This is thread-safe and can be unsubcribed in a destructor.
-            </summary>
-        </member>
-        <member name="E:Rewired.ReInput.SceneLoadedEvent">
-            <summary>
-            This is thread-safe and can be unsubcribed in a destructor.
+            /// This is thread-safe and can be unsubcribed in a destructor.
             </summary>
         </member>
         <member name="P:Rewired.ReInput.players">

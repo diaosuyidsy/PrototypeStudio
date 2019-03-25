@@ -34,17 +34,9 @@ namespace Rewired.UI.ControlMapper {
         [SerializeField]
         private Color _invertToggleDisabledColor;
         [SerializeField]
-        private ImageSettings _calibrationBackground;
-        [SerializeField]
         private ImageSettings _calibrationValueMarker;
         [SerializeField]
         private ImageSettings _calibrationRawValueMarker;
-        [SerializeField]
-        private ImageSettings _calibrationZeroMarker;
-        [SerializeField]
-        private ImageSettings _calibrationCalibratedZeroMarker;
-        [SerializeField]
-        private ImageSettings _calibrationDeadzone;
         [SerializeField]
         private TextSettings _textSettings;
         [SerializeField]
@@ -118,40 +110,28 @@ namespace Rewired.UI.ControlMapper {
 
             switch(themeClass) {
                 case "area":
-                    if (_areaBackground != null) _areaBackground.CopyTo(item);
+                    _areaBackground.CopyTo(item);
                     break;
                 case "popupWindow":
-                    if (_popupWindowBackground != null) _popupWindowBackground.CopyTo(item);
+                    _popupWindowBackground.CopyTo(item);
                     break;
                 case "mainWindow":
-                    if (_mainWindowBackground != null) _mainWindowBackground.CopyTo(item);
+                    _mainWindowBackground.CopyTo(item);
                     break;
                 case "calibrationValueMarker":
-                    if (_calibrationValueMarker != null) _calibrationValueMarker.CopyTo(item);
+                    _calibrationValueMarker.CopyTo(item);
                     break;
                 case "calibrationRawValueMarker":
-                    if (_calibrationRawValueMarker != null) _calibrationRawValueMarker.CopyTo(item);
-                    break;
-                case "calibrationBackground":
-                    if (_calibrationBackground != null) _calibrationBackground.CopyTo(item);
-                    break;
-                case "calibrationZeroMarker":
-                    if (_calibrationZeroMarker != null) _calibrationZeroMarker.CopyTo(item);
-                    break;
-                case "calibrationCalibratedZeroMarker":
-                    if (_calibrationCalibratedZeroMarker != null) _calibrationCalibratedZeroMarker.CopyTo(item);
-                    break;
-                case "calibrationDeadzone":
-                    if (_calibrationDeadzone != null) _calibrationDeadzone.CopyTo(item);
+                    _calibrationRawValueMarker.CopyTo(item);
                     break;
                 case "invertToggle":
-                    if (_invertToggle != null) _invertToggle.CopyTo(item);
+                    _invertToggle.CopyTo(item);
                     break;
                 case "invertToggleBackground":
-                    if (_inputGridFieldSettings != null) _inputGridFieldSettings.imageSettings.CopyTo(item);
+                    _inputGridFieldSettings.imageSettings.CopyTo(item);
                     break;
                 case "invertToggleButtonBackground":
-                    if (_buttonSettings != null) _buttonSettings.imageSettings.CopyTo(item);
+                    _buttonSettings.imageSettings.CopyTo(item);
                     break;
             }
         }

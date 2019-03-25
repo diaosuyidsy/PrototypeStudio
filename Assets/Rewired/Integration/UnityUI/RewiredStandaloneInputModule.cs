@@ -635,7 +635,6 @@ namespace Rewired.Integration.UnityUI {
         public override void Process() {
             if (!ReInput.isReady) return;
             if (!m_HasFocus && ShouldIgnoreEventsOnNoFocus()) return;
-            if (!enabled || !gameObject.activeInHierarchy) return;
 
             bool usedEvent = SendUpdateEventToSelectedObject();
 

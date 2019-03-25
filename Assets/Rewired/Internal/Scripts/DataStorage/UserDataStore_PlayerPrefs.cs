@@ -32,7 +32,7 @@ namespace Rewired.Data {
     public class UserDataStore_PlayerPrefs : UserDataStore {
 
         private const string thisScriptName = "UserDataStore_PlayerPrefs";
-        private const string editorLoadedMessage = "\n***IMPORTANT:*** Changes made to the Rewired Input Manager configuration after the last time XML data was saved WILL NOT be used because the loaded old saved data has overwritten these values. If you change something in the Rewired Input Manager such as a Joystick Map or Input Behavior settings, you will not see these changes reflected in the current configuration. Clear PlayerPrefs using the inspector option on the UserDataStore_PlayerPrefs component.";
+        private const string editorLoadedMessage = "\nIf unexpected input issues occur, the loaded XML data may be outdated or invalid. Clear PlayerPrefs using the inspector option on the UserDataStore_PlayerPrefs component.";
         private const string playerPrefsKeySuffix_controllerAssignments = "ControllerAssignments";
 
 #if UNITY_4_6_PLUS
@@ -206,7 +206,7 @@ namespace Rewired.Data {
             int count = LoadAll();
 
 #if UNITY_EDITOR
-            if(count > 0) Debug.LogWarning("Rewired: " + thisScriptName + " loaded all user data from XML. " + editorLoadedMessage);
+            if(count > 0) Debug.Log("Rewired: " + thisScriptName + " loaded all user data from XML. " + editorLoadedMessage);
 #endif
         }
 
@@ -224,7 +224,7 @@ namespace Rewired.Data {
             int count = LoadControllerDataNow(playerId, controllerType, controllerId);
 
 #if UNITY_EDITOR
-            if(count > 0) Debug.LogWarning("Rewired: " + thisScriptName + " loaded user data for " + controllerType + " " + controllerId + " for Player " + playerId + " from XML. " + editorLoadedMessage);
+            if(count > 0) Debug.Log("Rewired: " + thisScriptName + " loaded user data for " + controllerType + " " + controllerId + " for Player " + playerId + " from XML. " + editorLoadedMessage);
 #endif
         }
 
@@ -241,7 +241,7 @@ namespace Rewired.Data {
             int count = LoadControllerDataNow(controllerType, controllerId);
 
 #if UNITY_EDITOR
-            if(count > 0) Debug.LogWarning("Rewired: " + thisScriptName + " loaded user data for " + controllerType + " " + controllerId + " from XML. " + editorLoadedMessage);
+            if(count > 0) Debug.Log("Rewired: " + thisScriptName + " loaded user data for " + controllerType + " " + controllerId + " from XML. " + editorLoadedMessage);
 #endif
         }
 
@@ -257,7 +257,7 @@ namespace Rewired.Data {
             int count = LoadPlayerDataNow(playerId);
 
 #if UNITY_EDITOR
-            if(count > 0) Debug.LogWarning("Rewired: " + thisScriptName + " loaded Player + " + playerId + " user data from XML. " + editorLoadedMessage);
+            if(count > 0) Debug.Log("Rewired: " + thisScriptName + " loaded Player + " + playerId + " user data from XML. " + editorLoadedMessage);
 #endif
         }
 
@@ -274,7 +274,7 @@ namespace Rewired.Data {
             int count = LoadInputBehaviorNow(playerId, behaviorId);
 
 #if UNITY_EDITOR
-            if(count > 0) Debug.LogWarning("Rewired: " + thisScriptName + " loaded Player + " + playerId + " InputBehavior data from XML. " + editorLoadedMessage);
+            if(count > 0) Debug.Log("Rewired: " + thisScriptName + " loaded Player + " + playerId + " InputBehavior data from XML. " + editorLoadedMessage);
 #endif
         }
 
@@ -315,7 +315,7 @@ namespace Rewired.Data {
             if(args.controllerType == ControllerType.Joystick) {
                 int count = LoadJoystickData(args.controllerId);
 #if UNITY_EDITOR
-                if(count > 0) Debug.LogWarning("Rewired: " + thisScriptName + " loaded Joystick " + args.controllerId + " (" + ReInput.controllers.GetJoystick(args.controllerId).hardwareName + ") data from XML. " + editorLoadedMessage);
+                if(count > 0) Debug.Log("Rewired: " + thisScriptName + " loaded Joystick " + args.controllerId + " (" + ReInput.controllers.GetJoystick(args.controllerId).hardwareName + ") data from XML. " + editorLoadedMessage);
 #endif
 
                 // Load joystick assignments once on connect, but deferred until the end of the frame so all joysticks can connect first.
@@ -324,7 +324,7 @@ namespace Rewired.Data {
                 // Unity starts. Also allows the user to start the game with no joysticks connected and on the first
                 // joystick connected, load the assignments for a better user experience on phones/tablets.
                 // No further joystick assignments will be made on connect.
-                if (loadDataOnStart && loadJoystickAssignments && !wasJoystickEverDetected) {
+                if(loadDataOnStart && loadJoystickAssignments && !wasJoystickEverDetected) {
                     this.StartCoroutine(LoadJoystickAssignmentsDeferred());
                 }
 
@@ -542,7 +542,7 @@ namespace Rewired.Data {
                 }
 
 #if UNITY_EDITOR
-                Debug.LogWarning("Rewired: " + thisScriptName + " loaded controller assignments from PlayerPrefs.");
+                Debug.Log("Rewired: " + thisScriptName + " loaded controller assignments from PlayerPrefs.");
 #endif
             } catch {
 #if UNITY_EDITOR
@@ -707,10 +707,10 @@ namespace Rewired.Data {
             // Load the joystick assignments
             if(LoadJoystickAssignmentsNow(null)) {
 #if UNITY_EDITOR
-                Debug.LogWarning("Rewired: " + thisScriptName + " loaded joystick assignments from PlayerPrefs.");
+                Debug.Log("Rewired: " + thisScriptName + " loaded joystick assignments from PlayerPrefs.");
 #endif
             }
-
+            
             // Save the controller assignments after loading in case anything has been
             // re-assigned to a different Player or a new joystick was connected.
             SaveControllerAssignments();
