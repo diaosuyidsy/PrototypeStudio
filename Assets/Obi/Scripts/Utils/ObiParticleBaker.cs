@@ -9,6 +9,7 @@ namespace Obi{
 	 * allows to save performance for non-interactive simulations.
 	 */
 	[ExecuteInEditMode]
+	[AddComponentMenu("Physics/Obi/Obi Particle Baker")]
 	[RequireComponent(typeof(ObiSolver))]
 	public class ObiParticleBaker : MonoBehaviour {
 	
@@ -36,11 +37,9 @@ namespace Obi{
 					Time.captureFramerate = Mathf.Max(0,fixedBakeFramerate);
 					playing = false;
 					solver.simulate = true;
-					solver.RequireRenderablePositions();
 				}else{
 					framesToSkip = 0;
 					Time.captureFramerate = 0;
-					solver.RelinquishRenderablePositions();
 				}	
 			}
 		}
@@ -174,7 +173,8 @@ namespace Obi{
 				}
 			}
 
-			Oni.SetParticlePositions(solver.OniSolver,solver.renderablePositions,solver.renderablePositions.Length,0);
+			// TODO
+			//Oni.SetParticlePositions(solver.OniSolver,solver.renderablePositions,solver.renderablePositions.Length,0);
 			solver.UpdateActiveParticles();
 
 		}

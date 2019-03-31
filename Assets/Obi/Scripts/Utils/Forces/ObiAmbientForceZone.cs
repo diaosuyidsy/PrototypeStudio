@@ -15,10 +15,14 @@ namespace Obi
 				l2sTransform = transform.localToWorldMatrix;
 			
 			Vector4 force = l2sTransform.MultiplyVector(Vector3.forward * (intensity + GetTurbulence(turbulence)));
-			force[3] = actor.UsesCustomExternalForces ? 1 : 0;
 
-			Oni.AddParticleExternalForce(actor.Solver.OniSolver,ref force,actor.particleIndices,actor.particleIndices.Length);
-
+			if (actor.UsesCustomExternalForces){
+				for (int i = 0; i < actor.particleIndices.Length; ++i)
+					actor.Solver.wind[actor.particleIndices[i]] += force;
+			}else{
+				for (int i = 0; i < actor.particleIndices.Length; ++i)
+					actor.Solver.externalForces[actor.particleIndices[i]] += force;	
+			}
 		}
 
 		public void OnDrawGizmosSelected(){

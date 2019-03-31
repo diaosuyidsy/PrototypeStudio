@@ -1,8 +1,9 @@
 fileFormatVersion: 2
 guid: fa90deb0daeb04dd29ee9d64fa0526ed
-timeCreated: 1466752734
-licenseType: Store
+labels:
+- ObiFluid
 MonoImporter:
+  externalObjects: {}
   serializedVersion: 2
   defaultReferences: []
   executionOrder: 0

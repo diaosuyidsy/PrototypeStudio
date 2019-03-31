@@ -14,7 +14,7 @@
 #include "HalfEdgeMesh.h"
 #include "ParticleGrid.h"
 
-#if defined(__APPLE__) || defined(ANDROID)
+#if defined(__APPLE__) || defined(ANDROID) || defined(__linux__)
     #define EXPORT __attribute__((visibility("default")))
 #else
     #define EXPORT __declspec(dllexport)
@@ -28,6 +28,7 @@ namespace Oni
     class Collider;
     class Rigidbody;
     class TriangleSkinMap;
+    class DistanceField;
     struct SphereShape;
     struct BoxShape;
     struct CapsuleShape;
@@ -35,6 +36,7 @@ namespace Oni
     struct TriangleMeshShape;
     struct CollisionMaterial;
     struct ProfileInfo;
+    struct DFNode;
     
     // New API:
     template<class T>
@@ -53,6 +55,7 @@ namespace Oni
         typedef ObjHandle<Shape> ShapeHandle;
         typedef ObjHandle<Rigidbody> RigidbodyHandle;
         typedef ObjHandle<CollisionMaterial> CollisionMaterialHandle;
+        typedef ObjHandle<DistanceField> DistanceFieldHandle;
         
         // Colliders ********************:
         
@@ -69,11 +72,33 @@ namespace Oni
         EXPORT void UpdateShape(ShapeHandle* shape, const ShapeAdaptor& adaptor);
         EXPORT void UpdateRigidbody(RigidbodyHandle* rigidbody, const RigidbodyAdaptor& adaptor);
         
+        EXPORT void SetShapeDistanceField(ShapeHandle* shape, DistanceFieldHandle* distance_field);
+        
         EXPORT void SetColliderShape(ColliderHandle* collider, ShapeHandle* shape);
         EXPORT void SetColliderRigidbody(ColliderHandle* collider, RigidbodyHandle* rigidbody);
         EXPORT void SetColliderMaterial(ColliderHandle* collider, CollisionMaterialHandle* material);
         
         EXPORT void GetRigidbodyVelocity(RigidbodyHandle* rigidbody, RigidbodyVelocityDelta& delta);
+        
+        // Distance fields ********************:
+
+        EXPORT DistanceFieldHandle* CreateDistanceField();
+        EXPORT void DestroyDistanceField(DistanceFieldHandle* df);
+        
+        EXPORT void StartBuildingDistanceField(DistanceFieldHandle* df,float max_error,
+                                                                       int max_depth,
+                                                                       Eigen::Vector3f* vertex_positions,
+                                                                       int* triangle_indices_,
+                                                                       int num_vertices,
+                                                                       int num_triangles);
+        
+        EXPORT bool ContinueBuildingDistanceField(DistanceFieldHandle* df);
+        
+        EXPORT float SampleDistanceField(DistanceFieldHandle* df, float x, float y, float z);
+        
+        EXPORT int GetDistanceFieldNodeCount(DistanceFieldHandle* df);
+        EXPORT void GetDistanceFieldNodes(DistanceFieldHandle* df, DFNode* nodes);
+        EXPORT void SetDistanceFieldNodes(DistanceFieldHandle* df, const DFNode* nodes, int num);
         
         // Collision materials *****************:
         
@@ -83,11 +108,15 @@ namespace Oni
         
         // Solver ********************:
         
-		EXPORT Solver* CreateSolver(int max_particles, int max_neighbours);
+		EXPORT Solver* CreateSolver(int max_particles);
 		EXPORT void DestroySolver(Solver* solver);
         
-        EXPORT void AddCollider(Solver* solver,ColliderHandle* collider);
-        EXPORT void RemoveCollider(Solver* solver,ColliderHandle* collider);
+        EXPORT void InitializeFrame(Solver* solver,const Vector4fUnaligned& position, const Vector4fUnaligned& scale, const QuaternionfUnaligned& rotation);
+        EXPORT void UpdateFrame(Solver* solver,const Vector4fUnaligned& position, const Vector4fUnaligned& scale, const QuaternionfUnaligned& rotation, float dt);
+        EXPORT void ApplyFrame(Solver* solver, float linear_velocity_scale, float angular_velocity_scale, float linear_inertia_scale,float angular_inertia_scale, float dt);
+        
+        EXPORT void AddCollider(ColliderHandle* collider);
+        EXPORT void RemoveCollider(ColliderHandle* collider);
         
 		EXPORT void GetBounds(Solver* solver, Eigen::Vector3f& min, Eigen::Vector3f& max);
         EXPORT int GetParticleGridSize(Solver* solver);
@@ -96,40 +125,64 @@ namespace Oni
 		EXPORT void SetSolverParameters(Solver* solver, const SolverParameters* parameters);
 		EXPORT void GetSolverParameters(Solver* solver, SolverParameters* parameters);
         
-		EXPORT void AddSimulationTime(Solver* solver, const float step_seconds);
+		EXPORT void AddSimulationTime(Solver* solver, const float seconds);
         EXPORT void ResetSimulationTime(Solver* solver);
-		EXPORT void UpdateSolver(Solver* solver, const float substep_seconds);
-		EXPORT void ApplyPositionInterpolation(Solver* solver,const float substep_seconds);
+		EXPORT void UpdateSolver(Solver* solver, const unsigned int substeps,const float substep_seconds);
+		EXPORT void ApplyPositionInterpolation(Solver* solver,const unsigned int substeps, const float substep_seconds);
         EXPORT void UpdateSkeletalAnimation(Solver* solver);
         
-		EXPORT void SetConstraintsOrder(Solver* solver, const int* order);
-		EXPORT void GetConstraintsOrder(Solver* solver, int* order);
+        EXPORT void RecalculateInertiaTensors(Solver* solver);
+
 		EXPORT int GetConstraintCount(Solver* solver, const Solver::ConstraintType type);
         EXPORT void GetActiveConstraintIndices(Solver* solver, int* indices, int num, const Solver::ConstraintType type);
         
 		EXPORT int SetActiveParticles(Solver* solver, const int* active, int num);
         
-		EXPORT int SetParticlePhases(Solver* solver,const int* phases, int num, int dest_offset);
+		EXPORT void SetParticlePhases(Solver* solver, int* phases);
         
-		EXPORT int SetParticlePositions(Solver* solver,const float* positions, int num, int dest_offset);
+		EXPORT void SetParticlePositions(Solver* solver, Eigen::Vector4f* positions);
         
-        EXPORT int GetParticlePositions(Solver* solver, float* positions, int num, int source_offset);
+        EXPORT void SetParticlePreviousPositions(Solver* solver, Eigen::Vector4f* prev_positions);
         
-		EXPORT int SetRenderableParticlePositions(Solver* solver,const float* positions, int num, int dest_offset);
+        EXPORT void SetParticleStartPositions(Solver* solver, Eigen::Vector4f* prev_positions);
         
-        EXPORT int GetRenderableParticlePositions(Solver* solver, float* positions, int num, int source_offset);
+        EXPORT void SetParticleOrientations(Solver* solver,Eigen::Quaternionf* orientations);
         
-		EXPORT int SetParticleInverseMasses(Solver* solver, const float* inv_masses,int num, int dest_offset);
+        EXPORT void SetParticlePreviousOrientations(Solver* solver, Eigen::Quaternionf* prev_orientations);
         
-		EXPORT int SetParticleSolidRadii(Solver* solver, const float* radii,int num, int dest_offset);
+        EXPORT void SetParticleStartOrientations(Solver* solver, Eigen::Quaternionf* prev_orientations);
         
-		EXPORT int SetParticleVelocities(Solver* solver,const float* velocities, int num, int dest_offset);
+        EXPORT void SetRenderableParticleOrientations(Solver* solver, Eigen::Quaternionf* orientations);
         
-        EXPORT void AddParticleExternalForces(Solver* solver, const Vector4fUnaligned* forces, int* indices, int num);
+		EXPORT void SetRenderableParticlePositions(Solver* solver, Eigen::Vector4f* positions);
         
-        EXPORT void AddParticleExternalForce(Solver* solver, const Vector4fUnaligned& force, int* indices, int num);
+		EXPORT void SetParticleInverseMasses(Solver* solver, float* inv_masses);
         
-        EXPORT int GetParticleVelocities(Solver* solver, float* velocities, int num, int source_offset);
+        EXPORT void SetParticleInverseRotationalMasses(Solver* solver, float* inv_rot_masses);
+        
+        EXPORT void SetParticlePrincipalRadii(Solver* solver, Eigen::Vector4f* radii);
+        
+		EXPORT void SetParticleVelocities(Solver* solver, Eigen::Vector4f* velocities);
+        
+        EXPORT void SetParticleAngularVelocities(Solver* solver, Eigen::Vector4f* velocities);
+        
+        EXPORT void SetParticleExternalForces(Solver* solver, Eigen::Vector4f* forces);
+        
+        EXPORT void SetParticleExternalTorques(Solver* solver, Eigen::Vector4f* torques);
+        
+        EXPORT void SetParticleWinds(Solver* solver, Eigen::Vector4f* wind);
+        
+        EXPORT void SetParticlePositionDeltas(Solver* solver, Eigen::Vector4f* deltas);
+        
+        EXPORT void SetParticleOrientationDeltas(Solver* solver, Eigen::Quaternionf* deltas);
+        
+        EXPORT void SetParticlePositionConstraintCounts(Solver* solver, int* counts);
+        
+        EXPORT void SetParticleOrientationConstraintCounts(Solver* solver, int* counts);
+        
+        EXPORT void SetParticleNormals(Solver* solver, Eigen::Vector4f* normals);
+        
+        EXPORT void SetParticleInverseInertiaTensors(Solver* solver, Eigen::Vector4f* tensors);
         
         EXPORT int GetDeformableTriangleCount(Solver* solver);
         
@@ -137,9 +190,35 @@ namespace Oni
         
         EXPORT int RemoveDeformableTriangles(Solver* solver, int num, int source_offset);
         
-        EXPORT int GetParticleVorticities(Solver* solver, float* vorticities, int num, int source_offset);
         
-        EXPORT int GetParticleDensities(Solver* solver, float* densities, int num, int dest_offset);
+        // Fluid ********************:
+        
+        EXPORT void SetParticleSmoothingRadii(Solver* solver,float* radii);
+        
+        EXPORT void SetParticleBuoyancy(Solver* solver,float* buoyancy);
+        
+        EXPORT void SetParticleRestDensities(Solver* solver,float* rest_densities);
+        
+        EXPORT void SetParticleViscosities(Solver* solver,float* viscosities);
+        
+        EXPORT void SetParticleSurfaceTension(Solver* solver,float* surf_tension);
+        
+        EXPORT void SetParticleVorticityConfinement(Solver* solver,float* vort_confinement);
+        
+        EXPORT void SetParticleAtmosphericDragPressure(Solver* solver,float* atmospheric_drag, float* atmospheric_pressure);
+        
+        EXPORT void SetParticleDiffusion(Solver* solver,float* diffusion);
+        
+        
+        EXPORT void SetParticleVorticities(Solver* solver, Eigen::Vector4f* vorticities);
+        
+        EXPORT void SetParticleFluidData(Solver* solver, Eigen::Vector4f* fluid_data);
+        
+        EXPORT void SetParticleUserData(Solver* solver, Eigen::Vector4f* user_data);
+        
+        EXPORT void SetParticleAnisotropies(Solver* solver, Eigen::Vector4f* anisotropies);
+        
+        
         
 		EXPORT void SetConstraintGroupParameters(Solver* solver, const Solver::ConstraintType type, const ConstraintGroupParameters* parameters);
         
@@ -147,11 +226,9 @@ namespace Oni
         
 		EXPORT void SetCollisionMaterials(Solver* solver, const CollisionMaterialHandle** materials, int* indices, int num);
         
-        EXPORT int SetRestPositions(Solver* solver, const float* positions, int num, int dest_offset);
+        EXPORT void SetRestPositions(Solver* solver, Eigen::Vector4f* rest_positions);
         
-		EXPORT void SetFluidMaterials(Solver* solver, FluidMaterial* materials, int num, int dest_offset);
-        
-		EXPORT int SetFluidMaterialIndices(Solver* solver, const int* indices, int num, int dest_offset);
+        EXPORT void SetRestOrientations(Solver* solver, Eigen::Quaternionf* rest_orientations);
         
         // Meshes ********************:
         
@@ -280,7 +357,26 @@ namespace Oni
                                                  const int* shape_indices,
                                                  const int* first_index,
                                                  const int* num_indices,
-                                                 const float* shape_stiffness,
+                                                 const int* explicit_group,
+                                                 const float* shape_material_parameters,
+                                                 Eigen::Vector4f* rest_coms,
+                                                 Eigen::Vector4f* coms,
+                                                 Eigen::Quaternionf* orientations,
+                                                 int num);
+        
+        EXPORT  void CalculateRestShapeMatching(Solver* solver, ConstraintBatchBase* batch);
+        
+        EXPORT  void SetStretchShearConstraints(ConstraintBatchBase* batch,
+                                                const int* particle_indices,
+                                                const int* orientation_indices,
+                                                const float* rest_lengths,
+                                                const Eigen::Vector3f* stiffnesses,
+                                                int num);
+        
+        EXPORT void SetBendTwistConstraints(ConstraintBatchBase* batch,
+                                                 int* orientation_indices,
+                                                 const QuaternionfUnaligned* rest_darboux,
+                                                 const Eigen::Vector3f* stiffnesses,
                                                  int num);
         
         EXPORT void SetTetherConstraints(ConstraintBatchBase* batch,
@@ -297,6 +393,7 @@ namespace Oni
         EXPORT void SetPinConstraints(ConstraintBatchBase* batch,
                                       const int* indices,
                                       const Vector4fUnaligned* pin_offsets,
+                                      const QuaternionfUnaligned* rest_darboux,
                                       const ColliderHandle** colliders,
                                       const float* stiffnesses,
                                       int num);
@@ -305,6 +402,13 @@ namespace Oni
                                          const int* indices,
                                          const float* stiffnesses,
                                          int num);
+        
+        EXPORT void SetChainConstraints(ConstraintBatchBase* batch,
+                                        const int* indices,
+                                        const float* rest_lengths,
+                                        const int* first_index,
+                                        const int* num_indices,
+                                        int num);
         
         // Collision data ********************:
         
@@ -317,8 +421,6 @@ namespace Oni
         EXPORT int SetDiffuseParticles(Solver* solver, const Vector4fUnaligned* positions, int num);
         
         EXPORT int GetDiffuseParticleVelocities(Solver* solver, Vector4fUnaligned* velocities, int num, int source_offset);
-        
-		EXPORT void SetDiffuseParticleNeighbourCounts(Solver* solver,int* neighbour_counts);
         
         // Skin maps ********************:
         

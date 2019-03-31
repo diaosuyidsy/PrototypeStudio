@@ -14,7 +14,7 @@ namespace Obi{
 			oniShape = Oni.CreateShape(Oni.ShapeType.Box);
 		}		
 	
-		public override void UpdateIfNeeded (){
+		public override bool UpdateIfNeeded (){
 
 			BoxCollider2D box = collider as BoxCollider2D;
 	
@@ -23,8 +23,9 @@ namespace Obi{
 				center = box.offset;
 				adaptor.Set(center, size);
 				Oni.UpdateShape(oniShape,ref adaptor);
+				return true;
 			}
-
+			return false;
 		}
 
 	}

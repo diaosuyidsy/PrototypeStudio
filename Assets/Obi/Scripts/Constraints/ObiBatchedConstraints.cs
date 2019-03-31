@@ -41,7 +41,7 @@ public abstract class ObiBatchedConstraints : MonoBehaviour, IObiSolverClient
 
 	public abstract Oni.ConstraintType GetConstraintType();
 
-	public abstract List<ObiConstraintBatch> GetBatches();
+	public abstract IEnumerable<ObiConstraintBatch> GetBatches();
 	public abstract void Clear();
 
 	protected void OnAddToSolver(object info){
@@ -119,9 +119,12 @@ public abstract class ObiBatchedConstraints : MonoBehaviour, IObiSolverClient
 	}
 
 	public void OnEnable(){
-		
-		Enable();
-		
+	
+		// this will grab the actor component, in case the actor hasn't called GrabActor yet.
+		GrabActor();
+
+		if (actor != null && actor.enabled)
+			Enable();
 	}
 	
 	public void OnDisable(){

@@ -31,14 +31,12 @@ public class CollisionEventHandler : MonoBehaviour {
 	{
 		if (solver == null || frame == null || frame.contacts == null) return;
 
-		Gizmos.color = Color.yellow;
-
-		for(int i = 0;  i < frame.contacts.Length; ++i)
+		for(int i = 0;  i < frame.contacts.Count; ++i)
 		{
-			Gizmos.color = (frame.contacts[i].distance < 0.01f) ? Color.red : Color.green;
+			Gizmos.color = (frame.contacts.Data[i].distance < 0.01f) ? Color.red : Color.green;
 
-			Vector3 point = frame.contacts[i].point;
-			Vector3 normal = frame.contacts[i].normal;
+			Vector3 point = frame.contacts.Data[i].point;
+			Vector3 normal = frame.contacts.Data[i].normal;
 
 			Gizmos.DrawSphere(point,0.025f);
 	
@@ -48,12 +46,15 @@ public class CollisionEventHandler : MonoBehaviour {
 
 }
 
-/*[RequireComponent(typeof(ObiSolver))]
+/*
+[RequireComponent(typeof(ObiSolver))]
 public class CollisionEventHandler : MonoBehaviour {
 
  	ObiSolver solver;
-	
-	Obi.ObiSolver.ObiCollisionEventArgs frame;
+	public int counter = 0;
+	public Collider targetCollider = null;
+
+	HashSet<int> particles = new HashSet<int>();
 
 	void Awake(){
 		solver = GetComponent<Obi.ObiSolver>();
@@ -69,24 +70,67 @@ public class CollisionEventHandler : MonoBehaviour {
 	
 	void Solver_OnCollision (object sender, Obi.ObiSolver.ObiCollisionEventArgs e)
 	{
-
-		for(int i = 0;  i < e.contacts.Length; ++i)
+		HashSet<int> currentParticles = new HashSet<int>();
+		
+		for(int i = 0;  i < e.contacts.Count; ++i)
 		{
-			if (e.contacts[i].distance < 0.001f)
+			if (e.contacts.Data[i].distance < 0.001f)
 			{
 
-				Collider collider;
-				if (ObiCollider.idToCollider.TryGetValue(e.contacts[i].other,out collider)){
+				Component collider;
+				if (ObiCollider.idToCollider.TryGetValue(e.contacts.Data[i].other,out collider)){
 
-					ObiSolver.ParticleInActor pa = solver.particleToActor[e.contacts[i].particle];
-	
-					if (pa.actor.colors != null && pa.actor.colors.Length > 0)
-						pa.actor.colors[pa.indexInActor] = Color.green;
+					if (collider == targetCollider)
+						currentParticles.Add(e.contacts.Data[i].particle);
 
-					collider.gameObject.GetComponent<Renderer>().material.color = new Color(Random.value,Random.value,Random.value);
 				}
 			}
 		}
+
+		particles.ExceptWith(currentParticles);
+		counter += particles.Count;
+		particles = currentParticles;
+	}
+
+}
+*/
+
+/*[RequireComponent(typeof(ObiSolver))]
+public class CollisionEventHandler : MonoBehaviour {
+
+ 	ObiSolver solver;
+	public Collider targetCollider = null;
+
+	void Awake(){
+		solver = GetComponent<Obi.ObiSolver>();
+	}
+
+	void OnEnable () {
+		solver.OnCollision += Solver_OnCollision;
+	}
+
+	void OnDisable(){
+		solver.OnCollision -= Solver_OnCollision;
+	}
+	
+	void Solver_OnCollision (object sender, Obi.ObiSolver.ObiCollisionEventArgs e)
+	{
+		
+		for(int i = 0;  i < e.contacts.Count; ++i)
+		{
+			if (e.contacts.Data[i].distance < 0.001f)
+			{
+				Component collider;
+				if (ObiCollider.idToCollider.TryGetValue(e.contacts.Data[i].other,out collider)){
+
+					if (collider == targetCollider)
+						
+						solver.viscosities[e.contacts.Data[i].particle] = Mathf.Max(0,solver.viscosities[e.contacts.Data[i].particle] - 0.1f * Time.fixedDeltaTime);
+	
+				}
+			}
+		}
+
 	}
 
 }*/

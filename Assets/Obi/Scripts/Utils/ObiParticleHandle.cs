@@ -10,12 +10,14 @@ namespace Obi{
 [ExecuteInEditMode]
 public class ObiParticleHandle : MonoBehaviour {
 
+	public bool fixOrientations = true;
+
 	[SerializeField][HideInInspector] private ObiActor actor;
 	[SerializeField][HideInInspector] private List<int> handledParticleIndices = new List<int>();
 	[SerializeField][HideInInspector] private List<Vector3> handledParticlePositions = new List<Vector3>();
+	[SerializeField][HideInInspector] private List<Quaternion> handledParticleOrientations = new List<Quaternion>();
 	[SerializeField][HideInInspector] private List<float> handledParticleInvMasses = new List<float>();
-
-	private const float HANDLED_PARTICLE_MASS = 0.0001f;
+	[SerializeField][HideInInspector] private List<float> handledParticleInvRotMasses = new List<float>();
 
 	public int ParticleCount{
 		get{return handledParticleIndices.Count;}
@@ -28,11 +30,13 @@ public class ObiParticleHandle : MonoBehaviour {
 				if (actor != null && actor.Solver != null)
 				{
 					actor.Solver.OnFrameBegin -= Actor_solver_OnFrameBegin;
+					actor.OnInitialized -= Actor_OnInitialized;
 				}
 				actor = value;
 				if (actor != null && actor.Solver != null)
 				{
 					actor.Solver.OnFrameBegin += Actor_solver_OnFrameBegin;
+					actor.OnInitialized += Actor_OnInitialized; 
 				}
 			}
 		}
@@ -43,6 +47,7 @@ public class ObiParticleHandle : MonoBehaviour {
 		if (actor != null && actor.Solver != null)
 		{
 			actor.Solver.OnFrameBegin += Actor_solver_OnFrameBegin;
+			actor.OnInitialized += Actor_OnInitialized; 
 		}
 	}
 
@@ -50,23 +55,8 @@ public class ObiParticleHandle : MonoBehaviour {
 		if (actor != null && actor.Solver != null)
 		{
 			actor.Solver.OnFrameBegin -= Actor_solver_OnFrameBegin;
+			actor.OnInitialized -= Actor_OnInitialized; 
 			ResetInvMasses();
-		}
-	}
-
-	private void ResetInvMasses(){
-
-		// Reset original mass of all handled particles:
-		if (actor.InSolver)
-		{
-			float[] invMass = new float[1];
-			for (int i = 0; i < handledParticleIndices.Count; ++i)
-			{
-				int solverParticleIndex = actor.particleIndices[handledParticleIndices[i]];
-	
-				invMass[0] = actor.invMasses[handledParticleIndices[i]] = handledParticleInvMasses[i];
-				Oni.SetParticleInverseMasses(actor.Solver.OniSolver,invMass,1,solverParticleIndex);
-			}
 		}
 	}
 
@@ -74,13 +64,26 @@ public class ObiParticleHandle : MonoBehaviour {
 		ResetInvMasses();
 		handledParticleIndices.Clear();
 		handledParticlePositions.Clear();
+		handledParticleOrientations.Clear();
 		handledParticleInvMasses.Clear();
+		handledParticleInvRotMasses.Clear();
 	}
 
-	public void AddParticle(int index, Vector3 position, float invMass){
+	public void AddParticle(int index, Vector3 position, Quaternion orientation, float invMass, float invRotMass){
+
 		handledParticleIndices.Add(index);
+
 		handledParticlePositions.Add(transform.InverseTransformPoint(position));
 		handledParticleInvMasses.Add(invMass);
+
+		if (actor.UsesOrientedParticles){
+			Quaternion matrixRotation = Quaternion.LookRotation(
+							     		transform.worldToLocalMatrix.GetColumn(2),
+							      		transform.worldToLocalMatrix.GetColumn(1));
+
+			handledParticleOrientations.Add(matrixRotation * orientation);
+			handledParticleInvRotMasses.Add(invRotMass);
+		}
 	}
 
 	public void RemoveParticle(int index){
@@ -90,25 +93,46 @@ public class ObiParticleHandle : MonoBehaviour {
 		if (i > -1){
 
 			if (actor.InSolver){
-				int solverParticleIndex = actor.particleIndices[index];
-				float[] invMass = {actor.invMasses[index] = handledParticleInvMasses[i]};
-				Oni.SetParticleInverseMasses(actor.Solver.OniSolver,invMass,1,solverParticleIndex);
+				actor.Solver.invMasses[actor.particleIndices[index]] = actor.invMasses[index] = handledParticleInvMasses[i];
+				if (actor.UsesOrientedParticles)
+					actor.Solver.invRotationalMasses[actor.particleIndices[index]] = actor.invRotationalMasses[index] = handledParticleInvRotMasses[i];
 			}
 	
 			handledParticleIndices.RemoveAt(i);
 			handledParticlePositions.RemoveAt(i);
+			handledParticleOrientations.RemoveAt(i);
 			handledParticleInvMasses.RemoveAt(i);
+			handledParticleInvRotMasses.RemoveAt(i);
 
 		}
 	}
 
-	void Actor_solver_OnFrameBegin (object sender, System.EventArgs e)
+	private void ResetInvMasses(){
+
+		// Reset original mass of all handled particles:
+		if (actor.InSolver)
+		{
+			for (int i = 0; i < handledParticleIndices.Count; ++i)
+			{
+				actor.Solver.invMasses[actor.particleIndices[handledParticleIndices[i]]] = actor.invMasses[handledParticleIndices[i]] = handledParticleInvMasses[i];
+			}
+			if (actor.UsesOrientedParticles){
+				for (int i = 0; i < handledParticleIndices.Count; ++i)
+				{
+					actor.Solver.invRotationalMasses[actor.particleIndices[handledParticleIndices[i]]] = actor.invRotationalMasses[handledParticleIndices[i]] = handledParticleInvRotMasses[i];
+				}
+			}
+		}
+	}
+	
+	private void Actor_OnInitialized (object sender, System.EventArgs e){
+		// When the actor has been reinitialized, clear the handle as actor particle count might have changed.
+		Clear();
+	}
+
+	private void Actor_solver_OnFrameBegin (object sender, System.EventArgs e)
 	{
 		if (actor.InSolver){
-
-			Vector4[] pos = new Vector4[1];
-			Vector4[] vel = new Vector4[]{-actor.Solver.parameters.gravity * Time.fixedDeltaTime};
-			float[] invMass = new float[]{HANDLED_PARTICLE_MASS};
 
 			Matrix4x4 l2sTransform;
 			if (actor.Solver.simulateInLocalSpace)
@@ -121,13 +145,31 @@ public class ObiParticleHandle : MonoBehaviour {
 				int solverParticleIndex = actor.particleIndices[handledParticleIndices[i]];
 
 				// handled particles should always stay fixed:
-				Oni.SetParticleVelocities(actor.Solver.OniSolver,vel,1,solverParticleIndex);
-				Oni.SetParticleInverseMasses(actor.Solver.OniSolver,invMass,1,solverParticleIndex);
+				actor.Solver.velocities[solverParticleIndex] = Vector3.zero;
+				actor.Solver.invMasses [solverParticleIndex] = 0;
 
 				// set particle position:
-				pos[0] = l2sTransform.MultiplyPoint3x4(handledParticlePositions[i]);
-				Oni.SetParticlePositions(actor.Solver.OniSolver,pos,1,solverParticleIndex);
+				actor.Solver.positions[solverParticleIndex] = l2sTransform.MultiplyPoint3x4(handledParticlePositions[i]);
 				
+			}
+
+			if (fixOrientations && actor.UsesOrientedParticles){
+
+				Quaternion matrixRotation = Quaternion.LookRotation(
+							     			l2sTransform.GetColumn(2),
+							      			l2sTransform.GetColumn(1));
+
+				for (int i = 0; i < handledParticleIndices.Count; ++i){
+	
+					int solverParticleIndex = actor.particleIndices[handledParticleIndices[i]];
+
+					// handled particles should always stay fixed:
+					actor.Solver.angularVelocities[solverParticleIndex] = Vector3.zero;
+					actor.Solver.invRotationalMasses[solverParticleIndex] = 0;
+
+					// set particle orientation:
+					actor.Solver.orientations[solverParticleIndex] = matrixRotation * handledParticleOrientations[i];
+				}
 			}
 
 		}

@@ -44,7 +44,7 @@ namespace Obi{
 			}
 		}
 	
-		public override void UpdateIfNeeded (){
+		public override bool UpdateIfNeeded (){
 
 			TerrainCollider terrain = collider as TerrainCollider;
 	
@@ -63,9 +63,10 @@ namespace Obi{
 					heightmapDataHasChanged = false;
 					adaptor.Set(size,resolutionU,resolutionV,dataHandle.AddrOfPinnedObject());
 					Oni.UpdateShape(oniShape,ref adaptor);
+					return true;
 				}			
 			}
-
+			return false;
 		}
 
 		public override void Destroy(){

@@ -13,6 +13,7 @@ public static class Constants{
 
 public static class ObiUtils
 {
+
 	public static void DrawArrowGizmo(float bodyLenght, float bodyWidth, float headLenght, float headWidth){
 
 		float halfBodyLenght = bodyLenght*0.5f;
@@ -28,76 +29,6 @@ public static class ObiUtils
 		Gizmos.DrawLine(new Vector3(-halfBodyWidth,0,halfBodyLenght),new Vector3(-headWidth,0,halfBodyLenght));
 		Gizmos.DrawLine(new Vector3(0,0,halfBodyLenght+headLenght),new Vector3(headWidth,0,halfBodyLenght));
 		Gizmos.DrawLine(new Vector3(0,0,halfBodyLenght+headLenght),new Vector3(-headWidth,0,halfBodyLenght));
-	}
-
-	public static void ArrayFill<T>(T[] arrayToFill, T[] fillValue)
-	{
-	    if (fillValue.Length <= arrayToFill.Length)
-	    {
-		    // set the initial array value
-		    Array.Copy(fillValue, arrayToFill, fillValue.Length);
-		
-		    int arrayToFillHalfLength = arrayToFill.Length / 2;
-		
-		    for (int i = fillValue.Length; i < arrayToFill.Length; i *= 2)
-		    {
-		        int copyLength = i;
-		        if (i > arrayToFillHalfLength)
-		        {
-		            copyLength = arrayToFill.Length - i;
-		        }
-		
-		        Array.Copy(arrayToFill, 0, arrayToFill, i, copyLength);
-		    }
-		}
-	}
-
-	public static IList<T> Swap<T>(this IList<T> list, int indexA, int indexB)
-	{
-	    if (indexA != indexB && 
-			indexB > -1 && indexB < list.Count &&
-			indexA > -1 && indexA < list.Count)
-	    {
-	        T tmp = list[indexA];
-	        list[indexA] = list[indexB];
-	        list[indexB] = tmp;
-	    }
-	    return list;
-	}
-
-	/**
-	 * Same as AddRange for Lists, but for arrays which are conveniently a blittable type.
-     */
-	public static void AddRange<T>(ref T[] array, T[] other){
-
-		if (array == null || other == null) return;
-
-		int blitStart = array.Length;
-		System.Array.Resize(ref array,array.Length + other.Length);
-		other.CopyTo(array,blitStart);
-
-	}
-
-	/**
-	 * Same as RemoveRange for Lists, but for arrays which are conveniently a blittable type.
-     */
-	public static void RemoveRange<T>(ref T[] array, int index, int count){
-
-		if (array == null) return;
-	
-		if (index < 0 || count < 0){
-			throw new System.ArgumentOutOfRangeException("Index and/or count are < 0.");
-		}
-
-		if (index + count > array.Length){
-			throw new System.ArgumentException("Index and count do not denote a valid range of elements.");
-		}
-
-		for (int i = index; i < array.Length - count; i++){
-			array.SetValue(array.GetValue(i + count),i);
-		}
-		System.Array.Resize (ref array,array.Length - count);
-
 	}
 
 	public static Bounds Transform(this Bounds b, Matrix4x4 m)
@@ -132,12 +63,58 @@ public static class ObiUtils
 		return a - b * Mathf.Floor(a / b);
 	}
 
+	public static Matrix4x4 Add(this Matrix4x4 a, Matrix4x4 other){
+		for (int i = 0; i < 16; ++i)
+			a[i] += other[i];
+		return a;
+	}
+
+	public static Matrix4x4 ScalarMultiply(this Matrix4x4 a, float s){
+		for (int i = 0; i < 16; ++i)
+			a[i] *= s;
+		return a;
+	}
+
+	public static Vector3 ProjectPointLine(Vector3 point, Vector3 lineStart, Vector3 lineEnd, out float mu, bool clampToSegment = true)
+    {
+         Vector3 ap = point - lineStart;
+         Vector3 ab = lineEnd - lineStart;
+
+		 mu = Vector3.Dot(ap, ab) / Vector3.Dot(ab,ab);
+
+		 if (clampToSegment) 
+			mu = Mathf.Clamp01(mu);
+
+         return lineStart + ab * mu;
+     }
+
 	/**
 	 * Calculates the area of a triangle.
 	 */
 	public static float TriangleArea(Vector3 p1, Vector3 p2, Vector3 p3){
 		return Mathf.Sqrt(Vector3.Cross(p2-p1,p3-p1).sqrMagnitude) / 2f;
 	}
+
+	public static Quaternion RestDarboux(Quaternion q1, Quaternion q2){
+		Quaternion darboux = Quaternion.Inverse(q1) * q2;
+		Vector4 omega_plus, omega_minus;
+		omega_plus =  new Vector4(darboux.w,darboux.x,darboux.y,darboux.z) + new Vector4(1,0,0,0);
+		omega_minus = new Vector4(darboux.w,darboux.x,darboux.y,darboux.z) - new Vector4(1,0,0,0);
+		if (omega_minus.sqrMagnitude > omega_plus.sqrMagnitude){
+			darboux = new Quaternion(darboux.x*-1,darboux.y*-1,darboux.z*-1,darboux.w*-1);
+		}
+		return darboux;
+	}
+
+	public static System.Collections.IEnumerable BilateralInterleaved(int count)
+	{	
+		for (int i = 0; i < count; ++i){			
+			if (i % 2 != 0){
+				yield return count - (count % 2) - i;
+			}else yield return i;
+		}
+	}
+
 }
 }
 

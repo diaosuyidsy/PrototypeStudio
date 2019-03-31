@@ -60,10 +60,12 @@ namespace Obi{
 			Smooth
 		}
 
-		public enum FaceCulling{
-			Off,
-			Back,
-			Front
+		[Flags]
+		public enum ParticleCulling{
+			Off = 0,
+			Back = 1 << 0,
+			Front = 1 << 1,
+			All = Back | Front
 		}
 
 		public enum TextureChannel{
@@ -75,7 +77,7 @@ namespace Obi{
 		
 		ObiActor actor;
 		Mesh particlesMesh;
-		protected EditorCoroutine routine;
+		protected IEnumerator routine;
 		
 		public static bool editMode = false;
 		public static bool selectionBrush = false;
@@ -87,12 +89,12 @@ namespace Obi{
 		
 		static Gradient valueGradient = new Gradient();
 		
-		static protected FaceCulling faceCulling = FaceCulling.Back;
+		static protected ParticleCulling particleCulling = ParticleCulling.Off;
 		Rect uirect;
 		
 		//Property edition related:
 		static int lastSelectedParticle = 0;
-		static float newProperty = 0;
+		static protected float newProperty = 0;
 		
 		static bool autoRangeDraw = true;
 		static float maxRangeValue = Single.MinValue;
@@ -132,6 +134,7 @@ namespace Obi{
 		static protected float[] sqrDistanceToCamera = new float[0];
 		static protected int[] sortedIndices = new int[0];
 		static protected Vector3[] wsPositions = new Vector3[0];
+		static protected Quaternion[] wsOrientations = new Quaternion[0];
 
 		public static int SelectedParticleCount{
 			get{return selectedCount;}
@@ -142,9 +145,6 @@ namespace Obi{
 			actor = (ObiActor)target;
 
 			particlePropertyNames = new List<string>(){"Mass","Radius","Phase"};
-
-			if (actor.Solver)
-				actor.Solver.RequireRenderablePositions();
 
 			particlesMesh = new Mesh();
 			particlesMesh.hideFlags = HideFlags.HideAndDontSave;
@@ -158,18 +158,12 @@ namespace Obi{
 			separatorLine.stretchWidth = true;
 
 			EditorApplication.update += Update;
-			EditorApplication.playmodeStateChanged += OnPlayModeStateChanged;
-
 		}
 		
 		public virtual void OnDisable(){
 
-			if (actor.Solver)
-				actor.Solver.RelinquishRenderablePositions();
-
 			GameObject.DestroyImmediate(particlesMesh);
 			EditorApplication.update -= Update;
-			EditorApplication.playmodeStateChanged -= OnPlayModeStateChanged;
 			EditorUtility.ClearProgressBar();
 		}
 
@@ -213,7 +207,7 @@ namespace Obi{
 				Array.Resize(ref sqrDistanceToCamera,actor.positions.Length);
 				Array.Resize(ref sortedIndices,actor.positions.Length);
 				Array.Resize(ref wsPositions,actor.positions.Length);
-			
+				Array.Resize(ref wsOrientations,actor.positions.Length);
 			}
 			
 		}
@@ -267,7 +261,7 @@ namespace Obi{
 			if (Camera.current != null){
 				
  				if (paintBrush){
-					if (ObiClothParticleHandles.ParticleBrush(wsPositions,faceCulling,facingCamera,brushRadius,
+					if (ObiClothParticleHandles.ParticleBrush(wsPositions,particleCulling,facingCamera,brushRadius,
 															 	()=>{
 																	// As RecordObject diffs with the end of the current frame,
 																	// and this is a multi-frame operation, we need to use RegisterCompleteObjectUndo instead.
@@ -281,7 +275,7 @@ namespace Obi{
 						ParticlePropertyChanged();
 					}
 				}else if (selectionBrush){
-					if (ObiClothParticleHandles.ParticleBrush(wsPositions,faceCulling,facingCamera,brushRadius,null,
+					if (ObiClothParticleHandles.ParticleBrush(wsPositions,particleCulling,facingCamera,brushRadius,null,
 					                                          	(List<ParticleStampInfo> stampInfo,bool modified)=>{
 																	foreach(ParticleStampInfo info in stampInfo){
 																		if (actor.active[info.index])
@@ -292,7 +286,7 @@ namespace Obi{
 						SelectionChanged();
 					}
 				}else{	
-					if (ObiClothParticleHandles.ParticleSelector(wsPositions,selectionStatus,faceCulling,facingCamera)){
+					if (ObiClothParticleHandles.ParticleSelector(wsPositions,selectionStatus,particleCulling,facingCamera)){
 						SelectionChanged();
 					}
 				}	
@@ -320,11 +314,15 @@ namespace Obi{
 		}
 
 		public static bool IsParticleVisible(int index){
-			switch(faceCulling){
-				case FaceCulling.Back: return facingCamera[index];
-				case FaceCulling.Front: return !facingCamera[index];
-				default: return true;
-			}
+
+			if (particleCulling == ParticleCulling.All)
+				return false;
+			if ((particleCulling & ParticleCulling.Back) != 0)
+				return facingCamera[index];
+			if ((particleCulling & ParticleCulling.Front) != 0)
+				return !facingCamera[index];
+			return true;
+			
 		}
 		
 		protected void DrawParticles(){
@@ -367,13 +365,17 @@ namespace Obi{
 					// get particle color:
 					Color color;
 
-					if (selectionMask && !selectionStatus[sortedIndex])
+					if (selectionMask && !selectionStatus[sortedIndex]){
 						color = Color.gray;
-					else{
-						if (actor.invMasses[sortedIndex] == 0){
-							color = Color.red;
-						}else{
-							color = Color.blue;
+					}else{
+
+						if (actor.UsesOrientedParticles && actor.invRotationalMasses[sortedIndex] == 0)
+						{
+							color = new Color(0,0.7f,0.3f);
+						}
+						else
+						{
+							color = actor.invMasses[sortedIndex] == 0 ? Color.red : Color.blue; 
 						}
 					}
 	
@@ -459,7 +461,7 @@ namespace Obi{
 		                int i6 = i*6;
 						
 						// get particle size in screen space:
-						float size = actor.solidRadii[sortedIndex];
+						float size = actor.principalRadii[sortedIndex][0];
 						
 						// get particle color:
 						Color color = Color.white;
@@ -507,7 +509,8 @@ namespace Obi{
 			for(int i = 0; i < actor.positions.Length; i++)
 			{
 				if (actor.active[i]){
-					wsPositions[i] = actor.transform.TransformPoint(actor.positions[i]);		
+					wsPositions[i] = actor.GetParticlePosition(i);	
+					wsOrientations[i] = actor.GetParticleOrientation(i);	
 					facingCamera[i] = true;
 				}
 			}
@@ -578,7 +581,7 @@ namespace Obi{
 					actor.PushDataToSolver(ParticleData.INV_MASSES);
 				break;
 				case ParticleProperty.Radius:
-					actor.PushDataToSolver(ParticleData.SOLID_RADII);
+					actor.PushDataToSolver(ParticleData.PRINCIPAL_RADII);
 				break;
 				case ParticleProperty.Layer:
 					actor.PushDataToSolver(ParticleData.PHASES);
@@ -701,6 +704,7 @@ namespace Obi{
 
 				if (actor.InSolver){
 					actor.Solver.AccumulateSimulationTime(Time.fixedDeltaTime);
+					actor.Solver.UpdateColliders();
 					actor.Solver.SimulateStep(Time.fixedDeltaTime);
 					actor.Solver.EndFrame(Time.fixedDeltaTime);
 				}
@@ -932,40 +936,68 @@ namespace Obi{
 
 		}
 
+		protected virtual void FixSelectedParticles(){
+			for(int i = 0; i < selectionStatus.Length; i++){
+				if (selectionStatus[i]){
+					if (actor.invMasses[i] != 0){	
+						SetPropertyValue(ParticleProperty.Mass,i,Mathf.Infinity);
+						newProperty = GetPropertyValue(currentProperty,i);
+						actor.velocities[i] = Vector3.zero;
+					}
+				}
+			}
+			actor.PushDataToSolver(ParticleData.INV_MASSES | ParticleData.VELOCITIES);
+		}
+
+		protected virtual void FixSelectedParticlesTranslation(){
+			for(int i = 0; i < selectionStatus.Length; i++){
+				if (selectionStatus[i]){
+					if (actor.invMasses[i] != 0){	
+						SetPropertyValue(ParticleProperty.Mass,i,Mathf.Infinity);
+						newProperty = GetPropertyValue(currentProperty,i);
+						actor.velocities[i] = Vector3.zero;
+					}
+				}
+			}
+			actor.PushDataToSolver(ParticleData.INV_MASSES | ParticleData.VELOCITIES);
+		}
+
+		protected virtual void UnfixSelectedParticles(){
+			for(int i = 0; i < selectionStatus.Length; i++){
+				if (selectionStatus[i]){
+					if (actor.invMasses[i] == 0){	
+						SetPropertyValue(ParticleProperty.Mass,i,1);
+						newProperty = GetPropertyValue(currentProperty,i);
+					}
+				}
+			}
+			actor.PushDataToSolver(ParticleData.INV_MASSES);
+		}		
+
 		void DrawFixControls(){
 
 			GUILayout.BeginHorizontal();
 
 			GUI.enabled = selectedCount > 0;
 
-			if (GUILayout.Button(new GUIContent(Resources.Load<Texture2D>("PinButton") ,"Fix selected"),GUILayout.MaxHeight(24),GUILayout.Width(42))){
-				Undo.RecordObject(actor, "Fix particles");
-				for(int i = 0; i < selectionStatus.Length; i++){
-					if (selectionStatus[i]){
-						if (actor.invMasses[i] != 0){	
-							SetPropertyValue(ParticleProperty.Mass,i,Mathf.Infinity);
-							newProperty = GetPropertyValue(currentProperty,i);
-							actor.velocities[i] = Vector3.zero;
-						}
-					}
-				}
-				actor.PushDataToSolver(ParticleData.INV_MASSES | ParticleData.VELOCITIES);
+			GUI.enabled = actor.UsesOrientedParticles;
+			if (GUILayout.Button(new GUIContent(Resources.Load<Texture2D>("PinButton"),"Fix translation and orientation"),GUILayout.MaxHeight(24),GUILayout.Width(42))){
+				Undo.RecordObject(actor, "Fix particle");
+				FixSelectedParticles();
+			}
+			GUI.enabled = true;
+
+			if (GUILayout.Button(new GUIContent(Resources.Load<Texture2D>("PinTranslation"),"Fix translation"),GUILayout.MaxHeight(24),GUILayout.Width(42))){
+				Undo.RecordObject(actor, "Fix particle translation");
+				FixSelectedParticlesTranslation();
 			}
 
-			if (GUILayout.Button(new GUIContent(Resources.Load<Texture2D>("UnpinButton") ,"Unfix selected"),GUILayout.MaxHeight(24),GUILayout.Width(42))){
-				Undo.RecordObject(actor, "Unfix particles");
-				for(int i = 0; i < selectionStatus.Length; i++){
-					if (selectionStatus[i]){
-						if (actor.invMasses[i] == 0){	
-							SetPropertyValue(ParticleProperty.Mass,i,1);
-							newProperty = GetPropertyValue(currentProperty,i);
-						}
-					}
-				}
-				actor.PushDataToSolver(ParticleData.INV_MASSES);
+			if (GUILayout.Button(new GUIContent(Resources.Load<Texture2D>("UnpinButton"),"Unfix selected"),GUILayout.MaxHeight(24),GUILayout.Width(42))){
+				Undo.RecordObject(actor, "Unfix particle");
+				UnfixSelectedParticles();
 			}
 
-			if (GUILayout.Button(new GUIContent(Resources.Load<Texture2D>("HandleButton") ,"Create handle"),GUILayout.MaxHeight(24),GUILayout.Width(42))){
+			if (GUILayout.Button(new GUIContent(Resources.Load<Texture2D>("HandleButton"),"Create handle"),GUILayout.MaxHeight(24),GUILayout.Width(42))){
 
 				// Create the handle:
 				GameObject c = new GameObject("Obi Handle");
@@ -986,16 +1018,25 @@ namespace Obi{
 				// Add the selected particles to the handle:
 				for(int i = 0; i < selectionStatus.Length; i++){
 					if (selectionStatus[i]){
-						handle.AddParticle(i,wsPositions[i],actor.invMasses[i]);
+						handle.AddParticle(i,wsPositions[i],wsOrientations[i],actor.invMasses[i],actor.UsesOrientedParticles ? actor.invRotationalMasses[i]:0);
 					}
 				}
 
 			}
 			GUI.enabled = true;
+			GUILayout.EndHorizontal();
+		}
 
-			if (GUILayout.Button(new GUIContent(Resources.Load<Texture2D>("BackfacesButton") ,"Show backfaces"),GUI.skin.FindStyle("Button"),GUILayout.MaxHeight(24),GUILayout.Width(42))){
-				faceCulling = (FaceCulling) (((int)faceCulling + 1)%3);
-			}
+		void DrawVisualizationControls(){
+			GUILayout.BeginHorizontal();
+
+			bool frontfacing = GUILayout.Toggle((particleCulling & ParticleCulling.Front)!= 0,new GUIContent(Resources.Load<Texture2D>("FrontfacesButton") ,"Cull frontfacing particles"),GUI.skin.FindStyle("Button"),GUILayout.MaxHeight(24),GUILayout.Width(42));
+			particleCulling = frontfacing ? particleCulling | ParticleCulling.Front
+                 						  : particleCulling & ~ParticleCulling.Front;	
+
+			bool backfacing = GUILayout.Toggle((particleCulling & ParticleCulling.Back)!= 0,new GUIContent(Resources.Load<Texture2D>("BackfacesButton") ,"Cull backfacing particles"),GUI.skin.FindStyle("Button"),GUILayout.MaxHeight(24),GUILayout.Width(42));
+			particleCulling = backfacing ? particleCulling | ParticleCulling.Back
+                 						  : particleCulling & ~ParticleCulling.Back;	
 
 			GUILayout.EndHorizontal();
 		}
@@ -1017,17 +1058,12 @@ namespace Obi{
 
 			GUILayout.Box("",separatorLine);
 
+			DrawVisualizationControls();
+
+			GUILayout.Box("",separatorLine);
+
 			DrawPropertyControls();
 			
-		}
-		
-		void OnPlayModeStateChanged()
-		{
-			//Prevent the user from going into play mode while we are doing stuff:
-			if (routine != null && !routine.IsDone && EditorApplication.isPlayingOrWillChangePlaymode)
-			{
-				EditorApplication.isPlaying = false;
-			}
 		}
 		
 		void Update () {
@@ -1038,6 +1074,7 @@ namespace Obi{
 
 				accumulatedTime += deltaTime;
 				actor.Solver.AccumulateSimulationTime(deltaTime);
+				actor.Solver.UpdateColliders();
 
 				while (accumulatedTime >= Time.fixedDeltaTime){
 					actor.Solver.SimulateStep(Time.fixedDeltaTime);

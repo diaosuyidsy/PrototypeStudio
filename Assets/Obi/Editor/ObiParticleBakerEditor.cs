@@ -9,13 +9,6 @@ namespace Obi{
 	[CustomEditor(typeof(ObiParticleBaker))] 
 	public class ObiParticleBakerEditor : Editor
 	{
-
-		[MenuItem("Component/Physics/Obi/Obi Particle Baker",false,0)]
-		static void AddObiParticleBaker() 
-		{
-			foreach(Transform t in Selection.transforms)
-				Undo.AddComponent<ObiParticleBaker>(t.gameObject);
-		}
 		
 		ObiParticleBaker baker;
 		SerializedProperty cache;

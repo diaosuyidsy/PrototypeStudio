@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Obi{
 	
@@ -25,8 +26,12 @@ namespace Obi{
 			return Oni.ConstraintType.Volume;
 		}
 	
-		public override List<ObiConstraintBatch> GetBatches(){
-			return batches.ConvertAll(x => (ObiConstraintBatch)x);
+		public override IEnumerable<ObiConstraintBatch> GetBatches(){
+			return batches.Cast<ObiConstraintBatch>();
+		}
+
+		public ObiVolumeConstraintBatch GetFirstBatch(){
+			return batches.Count > 0 ? batches[0] : null;
 		}
 	
 		public override void Clear(){
@@ -45,7 +50,7 @@ namespace Obi{
 
 		public void OnDrawGizmosSelected(){
 		
-			if (!visualize) return;
+			if (!visualize || !isActiveAndEnabled) return;
 	
 			Gizmos.color = Color.red;
 	

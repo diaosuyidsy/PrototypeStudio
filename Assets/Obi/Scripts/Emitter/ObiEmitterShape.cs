@@ -1,21 +1,15 @@
 ﻿using UnityEngine;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 
 
 namespace Obi{
 
 	[ExecuteInEditMode]
-	[DisallowMultipleComponent]
 	public abstract class ObiEmitterShape : MonoBehaviour
 	{
-
-		public enum SamplingMethod{
-			SURFACE,		/**< distributes particles in the surface of the object. Stream emission.*/
-			LAYER,			/**< distributes particles in the surface of the object. Burst emission.*/
-			FILL			/**< distributes particles in the surface of the object. Burst emission.*/
-		}
-
+		[Serializable]
 		public struct DistributionPoint{
 			public Vector3 position;
 			public Vector3 velocity;
@@ -32,45 +26,68 @@ namespace Obi{
 				this.velocity = velocity;
 				this.color = color;
 			}
+
+			public DistributionPoint GetTransformed(Matrix4x4 transform, Color multiplyColor){
+				return new DistributionPoint(transform.MultiplyPoint3x4(position),
+											 transform.MultiplyVector(velocity),
+										     color*multiplyColor);
+			}
 		}
 
-		public SamplingMethod samplingMethod = SamplingMethod.SURFACE;
+		[SerializeProperty("Emitter")]
+		[SerializeField] protected ObiEmitter emitter;
+
+		public Color color = Color.white;
+
 		[HideInInspector] public float particleSize = 0;
+		[HideInInspector] public List<DistributionPoint> distribution = new List<DistributionPoint>();
 
-		protected List<DistributionPoint> distribution = new List<DistributionPoint>();
-		protected int lastDistributionPoint = 0;
+		protected Matrix4x4 l2sTransform;
 
-		public int DistributionPointsCount{
-			get{return distribution.Count;}
+		public ObiEmitter Emitter{
+			set{
+				if (emitter != value){
+
+					if (emitter != null){
+						emitter.RemoveShape(this);
+					}
+
+					emitter = value;
+					
+					if (emitter != null){
+						emitter.AddShape(this);
+					}
+				}
+			}
+			get{return emitter;}
+		}
+
+		public Matrix4x4 ShapeLocalToSolverMatrix{
+			get{return l2sTransform;}
 		}
 
 		public void OnEnable(){
-			ObiEmitter emitter = GetComponent<ObiEmitter>();
 			if (emitter != null)
-				emitter.EmitterShape = this;
+				emitter.AddShape(this);
 		}
 
 		public void OnDisable(){
-			ObiEmitter emitter = GetComponent<ObiEmitter>();
 			if (emitter != null)
-				emitter.EmitterShape = null;
+				emitter.RemoveShape(this);
+		}
+
+		public void UpdateLocalToSolverMatrix(){
+			if (emitter != null && emitter.InSolver){
+				if (emitter.Solver.simulateInLocalSpace)
+					l2sTransform = emitter.Solver.transform.worldToLocalMatrix * transform.localToWorldMatrix * emitter.InitialScaleMatrix.inverse;
+				else 
+					l2sTransform = transform.localToWorldMatrix * emitter.InitialScaleMatrix.inverse;
+			}else{
+				l2sTransform = transform.localToWorldMatrix;
+			}
 		}
 
 		public abstract void GenerateDistribution();
-
-		public abstract bool SupportsAllSamplingMethods();
-
-		public DistributionPoint GetDistributionPoint(){
-
-			if (lastDistributionPoint >= distribution.Count)
-				return new DistributionPoint();
-
-			DistributionPoint point = distribution[lastDistributionPoint];
-			lastDistributionPoint = (lastDistributionPoint + 1) % distribution.Count;
-
-			return point;
-			
-		}
 		
 	}
 }

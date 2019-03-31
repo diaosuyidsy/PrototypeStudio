@@ -1,7 +1,8 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections;
-
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Obi{
 
@@ -9,12 +10,33 @@ namespace Obi{
 	[AddComponentMenu("Physics/Obi/Obi Emitter")]
 	public class ObiEmitter : ObiActor {
 
+		public class ObiParticleEventArgs : System.EventArgs{
+			public int index = -1;	/**< particle index.*/
+			public ObiParticleEventArgs(int index){
+				this.index = index;
+			}
+		}
 
-		public int fluidPhase = 1;
-		[SerializeField][HideInInspector] private ObiEmitterMaterial emitterMaterial = null;
+		public event System.EventHandler<ObiParticleEventArgs> OnEmitParticle;
+		public event System.EventHandler<ObiParticleEventArgs> OnKillParticle;
+
+		public enum EmissionMethod{
+			STREAM,		/**< continously emits particles until there are no particles left to emit.*/
+			BURST		/**< distributes particles in the surface of the object. Burst emission.*/
+		}
+
+		[SerializeProperty("FluidPhase")]
+		[SerializeField] private int fluidPhase = 1;
+
+		[SerializeProperty("EmitterMaterial")]
+		[SerializeField] private ObiEmitterMaterial emitterMaterial = null;
 	
 		[Tooltip("Amount of solver particles used by this emitter.")]
-		[SerializeField][HideInInspector] private int numParticles = 1000;
+		[SerializeProperty("NumParticles")]
+		[SerializeField] private int numParticles = 1000;
+
+		[Tooltip("Changes how the emitter behaves. Available modes are Stream and Burst.")]
+		public EmissionMethod emissionMethod = EmissionMethod.STREAM;
 
 		[Tooltip("Speed (in units/second) of emitted particles. Setting it to zero will stop emission. Large values will cause more particles to be emitted.")]
 		public float speed = 0.25f;
@@ -26,7 +48,8 @@ namespace Obi{
 		[Tooltip("Amount of randomization applied to particles.")]
 		public float randomVelocity = 0;
 
-		private ObiEmitterShape emitterShape = null;
+		[HideInInspector][SerializeField]private List<ObiEmitterShape> emitterShapes = new List<ObiEmitterShape>();
+		private IEnumerator<ObiEmitterShape.DistributionPoint> distEnumerator;
 
 		private int activeParticleCount = 0;			/**< number of currently active particles*/
 		[HideInInspector] public float[] life;			/**< per particle remaining life in seconds.*/
@@ -37,7 +60,8 @@ namespace Obi{
 			set{
 				if (numParticles != value){
 					numParticles = value;
-					GeneratePhysicRepresentation();
+					IEnumerator generation = Initialize();
+					while (generation.MoveNext());
 				}
 			}
 			get{return numParticles;}
@@ -47,18 +71,14 @@ namespace Obi{
 			get{return activeParticleCount;}
 		}
 
-		public override bool SelfCollisions{
-			get{return selfCollisions;}
-		}
-
-		public ObiEmitterShape EmitterShape{
-			get{return emitterShape;}
+		public int FluidPhase{
 			set{
-				if (emitterShape != value){
-					emitterShape = value;
-					UpdateEmitterDistribution();
+				if (fluidPhase != value){
+					fluidPhase = value;
+					UpdateParticlePhases();
 				}
 			}
+			get{return fluidPhase;}
 		}
 
 		public ObiEmitterMaterial EmitterMaterial{
@@ -72,10 +92,7 @@ namespace Obi{
 				
 					if (emitterMaterial != null){
 						emitterMaterial.OnChangesMade += EmitterMaterial_OnChangesMade;
-						EmitterMaterial_OnChangesMade(emitterMaterial,new ObiEmitterMaterial.MaterialChangeEventArgs(
-																		  ObiEmitterMaterial.MaterialChanges.PER_MATERIAL_DATA |
-																		  ObiEmitterMaterial.MaterialChanges.PER_PARTICLE_DATA)
-													 );
+						EmitterMaterial_OnChangesMade(emitterMaterial,null);
 					}
 					
 				}
@@ -89,11 +106,15 @@ namespace Obi{
 			get{return true;}
 		}
 	
-		public override void Awake()
+		public void Awake()
 		{
-			base.Awake();
 			selfCollisions = true;
-			GeneratePhysicRepresentation();
+
+			UpdateEmitterDistribution();
+
+			distEnumerator = GetDistributionEnumerator();
+			IEnumerator generation = Initialize();
+			while (generation.MoveNext());
 		}
 
 		public override void OnEnable(){
@@ -114,18 +135,10 @@ namespace Obi{
 			
 		}
 
-		public override void DestroyRequiredComponents(){
-		}
-
 		public override bool AddToSolver(object info){
 			
 			if (Initialized && base.AddToSolver(info)){
-
-				solver.RequireRenderablePositions();
-
-				// recalculate particle masses, as the number of dimensions used to valculate particle volume depends on the solver.
-				CalculateParticleMass();
-
+				solver.OnUpdateParameters += Solver_OnUpdateParameters;
 				return true;
 			}
 			return false;
@@ -134,49 +147,30 @@ namespace Obi{
 		public override bool RemoveFromSolver(object info){
 
 			if (solver != null)
-				solver.RelinquishRenderablePositions();
-
+				solver.OnUpdateParameters -= Solver_OnUpdateParameters;
 			return base.RemoveFromSolver(info);
 
 		}
 
-		/**
-		 * Sets all particle masses in accordance to the fluid's rest density.
-		 */
-		public void CalculateParticleMass()
-		{
-			float pmass = (emitterMaterial != null) ? emitterMaterial.GetParticleMass(solver.parameters.mode) : 0.1f;
-
-			for (int i = 0; i < invMasses.Length; i++){
-				invMasses[i] = 1.0f/pmass;
+		public void AddShape(ObiEmitterShape shape){
+			if (!emitterShapes.Contains(shape)){
+				emitterShapes.Add(shape);
+				shape.particleSize = (emitterMaterial != null) ? emitterMaterial.GetParticleSize(solver.parameters.mode) : 0.1f;
+				shape.GenerateDistribution();
+				distEnumerator = GetDistributionEnumerator();
 			}
-
-			this.PushDataToSolver(ParticleData.INV_MASSES);
 		}
 
-
-		/**
-		 * Sets particle solid radii to half of the fluids rest distance.
-		 */
-		public void SetParticleRestRadius(){
-	
-			if (!InSolver) return;
-
-			// recalculate rest distance and particle mass:
-			float restDistance = (emitterMaterial != null) ? emitterMaterial.GetParticleSize(solver.parameters.mode) : 0.1f ;
-
-			for(int i = 0; i < particleIndices.Length; i++){
-				solidRadii[i] = restDistance*0.5f;
-			}
-
-			PushDataToSolver(ParticleData.SOLID_RADII);
+		public void RemoveShape(ObiEmitterShape shape){
+			emitterShapes.Remove(shape);
+			distEnumerator = GetDistributionEnumerator();
 		}
 
 		/**
 	 	* Generates the particle based physical representation of the emitter. This is the initialization method for the rope object
 		* and should not be called directly once the object has been created.
 	 	*/
-		public void GeneratePhysicRepresentation()
+		protected override IEnumerator Initialize()
 		{		
 			initialized = false;			
 			initializing = true;
@@ -188,13 +182,15 @@ namespace Obi{
 			positions = new Vector3[numParticles];
 			velocities = new Vector3[numParticles];
 			invMasses  = new float[numParticles];
-			solidRadii = new float[numParticles];
+			principalRadii = new Vector3[numParticles];
 			phases = new int[numParticles];
 			colors = new Color[numParticles];
 
+			activeParticleCount = 0;
+
 			float restDistance = (emitterMaterial != null) ? emitterMaterial.GetParticleSize(solver.parameters.mode) : 0.1f ;
 			float pmass = (emitterMaterial != null) ? emitterMaterial.GetParticleMass(solver.parameters.mode) : 0.1f;
-			
+
 			for (int i = 0; i < numParticles; i++){
 
 				active[i] = false;
@@ -204,9 +200,9 @@ namespace Obi{
 
 				if (emitterMaterial != null && !(emitterMaterial is ObiEmitterMaterialFluid)){
 					float randomRadius = UnityEngine.Random.Range(0,restDistance/100.0f * (emitterMaterial as ObiEmitterMaterialGranular).randomness);
-					solidRadii[i] = Mathf.Max(0.001f + restDistance*0.5f - randomRadius);
+					principalRadii[i] = Vector3.one * Mathf.Max(0.001f + restDistance*0.5f - randomRadius);
 				}else
-					solidRadii[i] = restDistance*0.5f;
+					principalRadii[i] = Vector3.one * restDistance*0.5f;
 
 				colors[i] = Color.white;
 
@@ -218,73 +214,138 @@ namespace Obi{
 			initializing = false;
 			initialized = true;
 			
+			yield return null;
+		}
+
+		private void UpdateEmitterDistribution(){
+			for (int i = 0; i < emitterShapes.Count;++i){
+				emitterShapes[i].particleSize = (emitterMaterial != null) ? emitterMaterial.GetParticleSize(solver.parameters.mode) : 0.1f;
+				emitterShapes[i].GenerateDistribution();
+			}
+		}
+
+		private IEnumerator<ObiEmitterShape.DistributionPoint> GetDistributionEnumerator(){
+
+			// In case there are no shapes, emit using the emitter itself as a single-point shape.
+			if (emitterShapes.Count == 0){
+				while (true){
+					Matrix4x4 l2sTransform = ActorLocalToSolverMatrix;
+					yield return new ObiEmitterShape.DistributionPoint(l2sTransform.GetColumn(3),l2sTransform.GetColumn(2),Color.white);
+				}
+			}
+
+			// Emit distributing emission among all shapes:
+			while (true)
+		    {
+				for (int j = 0; j < emitterShapes.Count; ++j){
+					ObiEmitterShape shape = emitterShapes[j];
+
+					if (shape.distribution.Count == 0) 
+						yield return new ObiEmitterShape.DistributionPoint(shape.ShapeLocalToSolverMatrix.GetColumn(3),shape.ShapeLocalToSolverMatrix.GetColumn(2),Color.white);
+
+					for (int i = 0; i < shape.distribution.Count; ++i)
+						yield return shape.distribution[i].GetTransformed(shape.ShapeLocalToSolverMatrix,shape.color);
+					
+				}
+			}
+
+		}
+
+		void EmitterMaterial_OnChangesMade (object sender, EventArgs e)
+		{
+			for (int i = 0; i < activeParticleCount; ++i){
+				UpdateParticleMaterial(i);
+			}
+
+			UpdateEmitterDistribution();
+		}
+
+		void Solver_OnUpdateParameters (object sender, EventArgs e)
+		{
+			for (int i = 0; i < activeParticleCount; ++i){
+				UpdateParticleResolution(i);
+			}
+
+			UpdateEmitterDistribution();
+		}
+
+		public void ResetParticle(int index, float offset){	
+
+			distEnumerator.MoveNext();
+			ObiEmitterShape.DistributionPoint distributionPoint = distEnumerator.Current;
+
+			Vector3 spawnVelocity = Vector3.Lerp(distributionPoint.velocity,UnityEngine.Random.onUnitSphere,randomVelocity);
+			Vector3 positionOffset = spawnVelocity * (speed * Time.fixedDeltaTime) * offset;
+
+			solver.positions [particleIndices[index]] = distributionPoint.position + positionOffset;
+			solver.velocities[particleIndices[index]] = spawnVelocity * speed;
+
+			UpdateParticleMaterial(index);
+
+			colors[index] = distributionPoint.color;
 		}
 
 		public override void UpdateParticlePhases(){
-	
+
 			if (!InSolver) return;
 
 			Oni.ParticlePhase particlePhase = Oni.ParticlePhase.Fluid;
 			if (emitterMaterial != null && !(emitterMaterial is ObiEmitterMaterialFluid))
 				particlePhase = 0;
 	
-			for(int i = 0; i < particleIndices.Length; i++){
+			for(int i = 0; i < phases.Length; i++){
 				phases[i] = Oni.MakePhase(fluidPhase,(selfCollisions?Oni.ParticlePhase.SelfCollide:0) | particlePhase);
 			}
+
 			PushDataToSolver(ParticleData.PHASES);
 		}
 
-		private void UpdateEmitterDistribution(){
-			if (emitterShape != null){
-				emitterShape.particleSize = (emitterMaterial != null) ? emitterMaterial.GetParticleSize(solver.parameters.mode) : 0.1f;
-				emitterShape.GenerateDistribution();
-			}
+		public void UpdateParticleResolution(int index){
+
+			if (solver == null) return;
+
+			ObiEmitterMaterialFluid fluidMaterial = emitterMaterial as ObiEmitterMaterialFluid;
+
+			int solverIndex = particleIndices[index];
+
+			float restDistance = (emitterMaterial != null) ? emitterMaterial.GetParticleSize(solver.parameters.mode) : 0.1f ;
+			float pmass = (emitterMaterial != null) ? emitterMaterial.GetParticleMass(solver.parameters.mode) : 0.1f;
+
+			if (emitterMaterial != null && !(emitterMaterial is ObiEmitterMaterialFluid)){
+				float randomRadius = UnityEngine.Random.Range(0,restDistance/100.0f * (emitterMaterial as ObiEmitterMaterialGranular).randomness);
+				solver.principalRadii[solverIndex] = Vector3.one * Mathf.Max(0.001f + restDistance*0.5f - randomRadius);
+			}else
+				solver.principalRadii[solverIndex] = Vector3.one * restDistance*0.5f;
+
+			solver.invMasses[solverIndex] = 1/pmass;
+			solver.smoothingRadii[solverIndex] = fluidMaterial != null ? fluidMaterial.GetSmoothingRadius(solver.parameters.mode) : 1f / (10 * Mathf.Pow(1,1/(solver.parameters.mode == Oni.SolverParameters.Mode.Mode3D ? 3.0f : 2.0f)));
+
 		}
 
-		void EmitterMaterial_OnChangesMade (object sender, ObiEmitterMaterial.MaterialChangeEventArgs e)
-		{
-			if ((e.changes & ObiEmitterMaterial.MaterialChanges.PER_PARTICLE_DATA) != 0){
-				CalculateParticleMass();
-				SetParticleRestRadius();
-				UpdateParticlePhases();
-			}
-			UpdateEmitterDistribution();
-		}
+		public void UpdateParticleMaterial(int index){
 
-		public void ResetParticlePosition(int index, float offset){	
+			if (solver == null) return;
 
-			if (emitterShape == null){
+			UpdateParticleResolution(index);
 
-				Vector3 spawnVelocity = Vector3.Lerp(transform.forward,UnityEngine.Random.onUnitSphere,randomVelocity);
+			ObiEmitterMaterialFluid fluidMaterial = emitterMaterial as ObiEmitterMaterialFluid;
 
-				Vector3 positionOffset = spawnVelocity * (speed * Time.fixedDeltaTime) * offset;
+			int solverIndex = particleIndices[index];
 
-				Vector4[] posArray = {transform.position + positionOffset};
-				Vector4[] velArray = {spawnVelocity * speed};
+			solver.restDensities[solverIndex] = fluidMaterial != null ? fluidMaterial.restDensity : 0;
+			solver.viscosities[solverIndex] = fluidMaterial != null ? fluidMaterial.viscosity : 0;
+			solver.surfaceTension[solverIndex] = fluidMaterial != null ? fluidMaterial.surfaceTension : 0;
+			solver.buoyancies[solverIndex] = fluidMaterial != null ? fluidMaterial.buoyancy : -1;
+			solver.atmosphericDrag[solverIndex] = fluidMaterial != null ? fluidMaterial.atmosphericDrag : 0;
+			solver.atmosphericPressure[solverIndex] = fluidMaterial != null ? fluidMaterial.atmosphericPressure : 0;
+			solver.diffusion[solverIndex] = fluidMaterial != null ? fluidMaterial.diffusion : 0;
+			solver.userData[solverIndex] = fluidMaterial != null ? fluidMaterial.diffusionData : Vector4.zero;
 
-				Oni.SetParticlePositions(solver.OniSolver,posArray,1,particleIndices[index]);
-				Oni.SetParticleVelocities(solver.OniSolver,velArray,1,particleIndices[index]);
+			Oni.ParticlePhase particlePhase = Oni.ParticlePhase.Fluid;
+			if (emitterMaterial != null && !(emitterMaterial is ObiEmitterMaterialFluid))
+				particlePhase = 0;
 
-				colors[index] = Color.white;
-
-			}else{
-
-				ObiEmitterShape.DistributionPoint distributionPoint = emitterShape.GetDistributionPoint();
-
-				Vector3 spawnVelocity = Vector3.Lerp(transform.TransformVector(distributionPoint.velocity),UnityEngine.Random.onUnitSphere,randomVelocity);
-
-				Vector3 positionOffset = spawnVelocity * (speed * Time.fixedDeltaTime) * offset;
-
-				Vector4[] posArray = {transform.TransformPoint(distributionPoint.position) + positionOffset};
-				Vector4[] velArray = {spawnVelocity * speed};
-
-				Oni.SetParticlePositions(solver.OniSolver,posArray,1,particleIndices[index]);
-				Oni.SetParticleVelocities(solver.OniSolver,velArray,1,particleIndices[index]);
-
-				colors[index] = distributionPoint.color;
-
-			}
-
+			solver.phases[solverIndex] = Oni.MakePhase(fluidPhase,(selfCollisions?Oni.ParticlePhase.SelfCollide:0) | particlePhase);
 		}
 
 		/**
@@ -297,20 +358,22 @@ namespace Obi{
 			life[activeParticleCount] = lifespan;
 			
 			// move particle to its spawn position:
-			ResetParticlePosition(activeParticleCount, offset);
+			ResetParticle(activeParticleCount, offset);
 
 			// now there's one active particle more:
 			active[activeParticleCount] = true;
 			activeParticleCount++;
 
-			return true;
+			if (OnEmitParticle != null)
+				OnEmitParticle(this,new ObiParticleEventArgs(activeParticleCount-1));
 
+			return true;
 		}
 
 		/**
 		 * Asks the emiter to kill a particle. Returns whether it was succesful.
 		 */
-		public bool KillParticle(int index){
+		private bool KillParticle(int index){
 
 			if (activeParticleCount == 0 || index >= activeParticleCount) return false;
 
@@ -319,7 +382,11 @@ namespace Obi{
 			active[activeParticleCount] = false; 
 
 			// swap solver particle indices:
-			int temp = particleIndices[activeParticleCount];
+			int temp = solver.particleToActor[particleIndices[activeParticleCount]].indexInActor;
+            solver.particleToActor[particleIndices[activeParticleCount]].indexInActor = index;
+            solver.particleToActor[particleIndices[index]].indexInActor = temp;
+
+			temp = particleIndices[activeParticleCount];
 			particleIndices[activeParticleCount] = particleIndices[index];
 			particleIndices[index] = temp;
 
@@ -332,6 +399,9 @@ namespace Obi{
 			Color tempColor = colors[activeParticleCount];
 			colors[activeParticleCount] = colors[index];
 			colors[index] = tempColor;
+
+			if (OnKillParticle != null)
+				OnKillParticle(this,new ObiParticleEventArgs(activeParticleCount));
 
 			return true;
 			
@@ -346,12 +416,24 @@ namespace Obi{
 			PushDataToSolver(ParticleData.ACTIVE_STATUS);
 		}
 
+		private int GetDistributionPointsCount(){
+			int size = 0;
+			for (int i = 0; i < emitterShapes.Count;++i)	
+				size += emitterShapes[i].distribution.Count;
+			return Mathf.Max(1,size);
+		}
+
 		public override void OnSolverStepBegin(){
 
 			base.OnSolverStepBegin();
 
 			bool emitted = false;
 			bool killed = false;
+
+			// cache a per-shape matrix that transforms from shape local space to solver space.
+			for (int j = 0; j < emitterShapes.Count; ++j){
+				emitterShapes[j].UpdateLocalToSolverMatrix();
+			}
 
 			// Update lifetime and kill dead particles:
 			for (int i = activeParticleCount-1; i >= 0; --i){
@@ -362,10 +444,10 @@ namespace Obi{
 				}
 			}
 
-			int emissionPoints = emitterShape != null ? emitterShape.DistributionPointsCount : 1;
+			int emissionPoints = GetDistributionPointsCount();
 
 			// stream emission:
-			if (emitterShape == null || emitterShape.samplingMethod == ObiEmitterShape.SamplingMethod.SURFACE)
+			if (emissionMethod == EmissionMethod.STREAM)
 			{	
 
 				// number of bursts per simulation step:

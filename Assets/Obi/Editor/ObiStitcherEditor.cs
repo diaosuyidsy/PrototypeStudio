@@ -16,10 +16,10 @@ namespace Obi{
 	{
 		
 		ObiStitcher stitcher;
-		bool editing = false;
+		static public bool editing = false;
 
-		Vector3 sewingToolHandle1 = Vector3.zero;
-		Vector3 sewingToolHandle2 = Vector3.one;
+		static public Vector3 sewingToolHandle1 = Vector3.zero;
+		static public Vector3 sewingToolHandle2 = Vector3.one;
 
 		static public bool[] selectionStatus = new bool[0];
 		

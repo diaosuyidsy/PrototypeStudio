@@ -25,15 +25,15 @@ namespace Obi
 	{
 		protected IntPtr batch;	/**< pointer to constraint batch in the solver.*/
 
-		public float maxYoungModulus = 0.02f; /**< default value of max stiffness (N/m2)*/
-		public float minYoungModulus = 0.0001f; /**< default value of min stiffness (N/m2)*/
+		public float maxYoungModulus = 25000000000; /**< default value of max stiffness (N/m2)*/
+		public float minYoungModulus = 1; 			/**< default value of min stiffness (N/m2)*/
 
 		[SerializeField][HideInInspector] protected int constraintCount = 0; /**< amount of constraints in this batch*/
 		[SerializeField][HideInInspector] protected bool cooked = false;	 /**< returns whether this batch supports cooking or not.*/
 		[SerializeField][HideInInspector] protected bool sharesParticles = false; /**< returns whether this batch must be done serially or can benefit from multithreading.*/
 
 		[SerializeField][HideInInspector] protected List<int> activeConstraints = new List<int>();		/**< list of active constraint indices.*/
-		[SerializeField][HideInInspector] protected List<int> phaseSizes = new List<int>();		/**< phase sizes for cooked batches.*/
+		[SerializeField][HideInInspector] protected List<int> phaseSizes = new List<int>();				/**< phase sizes for cooked batches.*/
 
 		public IntPtr OniBatch{
 			get{return batch;}
@@ -48,9 +48,9 @@ namespace Obi
 		public bool SharesParticles{
 			get{return sharesParticles;}
 		}
-		public IEnumerable<int> ActiveConstraints
+		public List<int> ActiveConstraints
 		{
-    		get{return activeConstraints.AsReadOnly();}
+    		get{return activeConstraints;}
 		}
 
 		// Implement this method to provide info about the batch type:
@@ -71,9 +71,9 @@ namespace Obi
 		public abstract List<int> GetConstraintsInvolvingParticle(int particleIndex);
 
 		protected float StiffnessToCompliance(float stiffness){
-			float minCompliance = 1.0f/Mathf.Max(minYoungModulus,0.00001f);
-			float maxCompliance = 1.0f/Mathf.Max(maxYoungModulus,minYoungModulus);
-			return Mathf.Lerp(minCompliance,maxCompliance,stiffness);
+			float maxCompliance = 1.0f/Mathf.Max(minYoungModulus,0.00001f);
+			float minCompliance = 1.0f/Mathf.Max(maxYoungModulus,minYoungModulus);
+			return Mathf.Lerp(maxCompliance,minCompliance,stiffness);
 		}
 
 		public void ActivateConstraint(int index){

@@ -12,15 +12,18 @@ namespace Obi{
 public class ObiPinConstraintBatch : ObiConstraintBatch
 {
 
-	[HideInInspector] public List<int> pinIndices = new List<int>();					/**< Pin constraint indices.*/
-	[HideInInspector] public List<ObiCollider> pinBodies = new List<ObiCollider>();			/**< Pin bodies.*/
-	[HideInInspector] public List<Vector4> pinOffsets = new List<Vector4>();			/**< Offset expressed in the attachment's local space.*/
-	[HideInInspector] public List<float> stiffnesses = new List<float>();				/**< Stiffnesses of pin constraits.*/
+	[HideInInspector] public List<int> pinIndices = new List<int>();								/**< Pin constraint indices.*/
+	[HideInInspector] public List<ObiColliderBase> pinBodies = new List<ObiColliderBase>();			/**< Pin bodies.*/
+	[HideInInspector] public List<Vector4> pinOffsets = new List<Vector4>();						/**< Offset expressed in the attachment's local space.*/
+	[HideInInspector] public List<Quaternion> restDarbouxVectors = new List<Quaternion>();			/**< Rest Darboux vectors.*/
+	[HideInInspector] public List<float> stiffnesses = new List<float>();							/**< Stiffnesses of pin constraits.*/
 
 	[HideInInspector] public List<float> pinBreakResistance = new List<float>(); 	/**< Per-constraint tear resistances.*/
 
 	int[] solverIndices = new int[0];
 	IntPtr[] solverColliders = new IntPtr[0];
+
+	float[] constraintForces;
 
 	public ObiPinConstraintBatch(bool cooked, bool sharesParticles) : base(cooked,sharesParticles){
 	}
@@ -38,16 +41,18 @@ public class ObiPinConstraintBatch : ObiConstraintBatch
 		pinIndices.Clear();
 		pinBodies.Clear();
 		pinOffsets.Clear();
+		restDarbouxVectors.Clear();
 		stiffnesses.Clear();
 		pinBreakResistance.Clear();
 		constraintCount = 0;	
 	}
 
-	public void AddConstraint(int index1, ObiCollider body, Vector3 offset, float stiffness){
+	public void AddConstraint(int index1, ObiColliderBase body, Vector3 offset, Quaternion restDarboux, float stiffness){
 		activeConstraints.Add(constraintCount);
 		pinIndices.Add(index1);
 		pinBodies.Add(body);
 		pinOffsets.Add(offset);
+		restDarbouxVectors.Add(restDarboux);
         stiffnesses.Add(stiffness);
 		pinBreakResistance.Add(float.MaxValue);
 		constraintCount++;
@@ -66,6 +71,7 @@ public class ObiPinConstraintBatch : ObiConstraintBatch
 		pinIndices.RemoveAt(index);
 		pinBodies.RemoveAt(index);
         pinOffsets.RemoveAt(index);
+		restDarbouxVectors.RemoveAt(index);
 		stiffnesses.RemoveAt(index);
 		pinBreakResistance.RemoveAt(index);
 		constraintCount--;
@@ -110,7 +116,7 @@ public class ObiPinConstraintBatch : ObiConstraintBatch
 			stiffnesses[i] = StiffnessToCompliance(pc.stiffness);
 		}
 
-		Oni.SetPinConstraints(batch,solverIndices,pinOffsets.ToArray(),solverColliders,stiffnesses.ToArray(),ConstraintCount);
+		Oni.SetPinConstraints(batch,solverIndices,pinOffsets.ToArray(),restDarbouxVectors.ToArray(),solverColliders,stiffnesses.ToArray(),ConstraintCount);
 
 	}
 
@@ -119,16 +125,21 @@ public class ObiPinConstraintBatch : ObiConstraintBatch
 
 	public void BreakConstraints(){
 
-		float[] forces = new float[ConstraintCount];
-		Oni.GetBatchConstraintForces(batch,forces,ConstraintCount,0);
+		if (constraintForces == null || constraintForces.Length != ConstraintCount * 4)
+			constraintForces = new float[ConstraintCount * 4];
 
-		for (int i = 0; i < forces.Length; i++){
-			if (-forces[i] * 1000 > pinBreakResistance[i]){ // units are kilonewtons.
+		Oni.GetBatchConstraintForces(batch,constraintForces,ConstraintCount,0);
+
+		bool torn = false;
+		for (int i = 0; i < ConstraintCount; i++){
+			if (-constraintForces[i*4 + 3] * 1000 > pinBreakResistance[i]){ // units are kilonewtons.
 				activeConstraints.Remove(i);
+				torn = true;
 			}
 		}
 
-		SetActiveConstraints();
+		if (torn)
+			SetActiveConstraints();
 	}
 
 }

@@ -30,7 +30,7 @@ public class ObiClothParticleHandles
 
 	public static bool ParticleSelector(Vector3[] positions,
 	                                    bool[] selectionStatus,
-										ObiParticleActorEditor.FaceCulling selectBackfaces,
+										ObiParticleActorEditor.ParticleCulling selectBackfaces,
 	                                    bool[] facingCamera){
 
 		Matrix4x4 cachedMatrix = Handles.matrix;
@@ -64,10 +64,8 @@ public class ObiClothParticleHandles
 			for(int i = 0; i < positions.Length; i++){
 				
 				// skip not selectable particles:
-				switch(selectBackfaces){
-					case ObiParticleActorEditor.FaceCulling.Back: if (!facingCamera[i]) continue; break;
-					case ObiParticleActorEditor.FaceCulling.Front: if (facingCamera[i]) continue; break;
-				}
+				if (!facingCamera[i] && (selectBackfaces & ObiParticleActorEditor.ParticleCulling.Back) != 0) continue;
+				if (facingCamera[i]  && (selectBackfaces & ObiParticleActorEditor.ParticleCulling.Front) != 0) continue;
 				
 				// get particle position in gui space:
 				Vector2 pos = HandleUtility.WorldToGUIPoint(positions[i]);
@@ -140,8 +138,8 @@ public class ObiClothParticleHandles
 
 					// skip not selectable particles:
 					switch(selectBackfaces){
-						case ObiParticleActorEditor.FaceCulling.Back: if (!facingCamera[i]) continue; break;
-						case ObiParticleActorEditor.FaceCulling.Front: if (facingCamera[i]) continue; break;
+						case ObiParticleActorEditor.ParticleCulling.Back: if (!facingCamera[i]) continue; break;
+						case ObiParticleActorEditor.ParticleCulling.Front: if (facingCamera[i]) continue; break;
 					}
 					
 					// get particle position in gui space:
@@ -184,7 +182,7 @@ public class ObiClothParticleHandles
 
 
 	public static bool ParticleBrush(Vector3[] positions,
-									 ObiParticleActorEditor.FaceCulling selectBackfaces,
+									 ObiParticleActorEditor.ParticleCulling selectBackfaces,
                                      bool[] facingCamera,
 									 float radius,
 									 Action strokeStart,
@@ -211,10 +209,8 @@ public class ObiClothParticleHandles
 			for(int i = 0; i < positions.Length; i++){
 				
 				// skip not selectable particles:
-				switch(selectBackfaces){
-					case ObiParticleActorEditor.FaceCulling.Back: if (!facingCamera[i]) continue; break;
-					case ObiParticleActorEditor.FaceCulling.Front: if (facingCamera[i]) continue; break;
-				}
+				if (!facingCamera[i] && (selectBackfaces & ObiParticleActorEditor.ParticleCulling.Back) != 0) continue;
+				if (facingCamera[i]  && (selectBackfaces & ObiParticleActorEditor.ParticleCulling.Front) != 0) continue;
 				
 				// get particle position in gui space:
 				Vector2 pos = HandleUtility.WorldToGUIPoint(positions[i]);
@@ -253,8 +249,8 @@ public class ObiClothParticleHandles
 					
 					// skip not selectable particles:
 					switch(selectBackfaces){
-						case ObiParticleActorEditor.FaceCulling.Back: if (!facingCamera[i]) continue; break;
-						case ObiParticleActorEditor.FaceCulling.Front: if (facingCamera[i]) continue; break;
+						case ObiParticleActorEditor.ParticleCulling.Back: if (!facingCamera[i]) continue; break;
+						case ObiParticleActorEditor.ParticleCulling.Front: if (facingCamera[i]) continue; break;
 					}
 					
 					// get particle position in gui space:

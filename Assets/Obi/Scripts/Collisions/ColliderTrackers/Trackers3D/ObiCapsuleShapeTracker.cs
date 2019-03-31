@@ -22,7 +22,7 @@ namespace Obi{
 			oniShape = Oni.CreateShape(Oni.ShapeType.Capsule);
 		}	
 	
-		public override void UpdateIfNeeded (){
+		public override bool UpdateIfNeeded (){
 
 			CapsuleCollider capsule = collider as CapsuleCollider;
 	
@@ -36,6 +36,7 @@ namespace Obi{
 				center = capsule.center;
 				adaptor.Set(center, radius, height, direction);
 				Oni.UpdateShape(oniShape,ref adaptor);
+				return true;
 			}
 
 			CharacterController character = collider as CharacterController;
@@ -48,8 +49,10 @@ namespace Obi{
 				center = character.center;
 				adaptor.Set(center, radius, height, 1);
 				Oni.UpdateShape(oniShape,ref adaptor);
+				return true;
 			}
 
+			return false;
 		}
 
 	}

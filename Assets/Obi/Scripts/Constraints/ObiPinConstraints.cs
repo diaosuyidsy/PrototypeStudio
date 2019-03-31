@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Obi{
 
@@ -22,8 +23,12 @@ public class ObiPinConstraints : ObiBatchedConstraints
 		return Oni.ConstraintType.Pin;
 	}
 
-	public override List<ObiConstraintBatch> GetBatches(){
-		return batches.ConvertAll(x => (ObiConstraintBatch)x);
+	public override IEnumerable<ObiConstraintBatch> GetBatches(){
+		return batches.Cast<ObiConstraintBatch>();
+	}
+
+	public ObiPinConstraintBatch GetFirstBatch(){
+		return batches.Count > 0 ? batches[0] : null;
 	}
 
 	public override void Clear(){
@@ -40,19 +45,27 @@ public class ObiPinConstraints : ObiBatchedConstraints
 		batches.Remove(batch);
 	}
 
+	public void BreakConstraints(){
+		for (int i = 0; i < batches.Count; ++i){
+			batches[i].BreakConstraints();
+		}	
+	}
+
 	public void OnDrawGizmosSelected(){
 
-		if (!visualize) return;
+		if (!visualize || !isActiveAndEnabled) return;
 
 		Gizmos.color = Color.cyan;
 
 		foreach (ObiPinConstraintBatch batch in batches){
 			foreach(int i in batch.ActiveConstraints){
 
-				Vector3 pinPosition = batch.pinBodies[i].transform.TransformPoint(batch.pinOffsets[i]);
-
-				Gizmos.DrawLine(actor.GetParticlePosition(batch.pinIndices[i]),
-								pinPosition);
+				if (batch.pinBodies[i] != null){
+					Vector3 pinPosition = batch.pinBodies[i].transform.TransformPoint(batch.pinOffsets[i]);
+	
+					Gizmos.DrawLine(actor.GetParticlePosition(batch.pinIndices[i]),
+									pinPosition);
+				}
 			}
 		}
 

@@ -17,8 +17,8 @@ namespace Obi
 	public class ObiBone : ObiActor
 	{
 		public const float DEFAULT_PARTICLE_MASS = 0.1f;
-		public const float MAX_YOUNG_MODULUS = 20.0f; //that of wood (N/m2);
-		public const float MIN_YOUNG_MODULUS = 0.0001f; //that of polymer foam (N/m2);
+		public const float MAX_YOUNG_MODULUS = 25000000000; 
+		public const float MIN_YOUNG_MODULUS = 1000; 
 
 		[Tooltip("Initial particle radius.")]
 		public float particleRadius = 0.05f;				/**< Thickness of the rope.*/
@@ -30,18 +30,17 @@ namespace Obi
 		protected ObiAnimatorController animatorController;
 
 		public ObiSkinConstraints SkinConstraints{
-			get{return constraints[Oni.ConstraintType.Skin] as ObiSkinConstraints;}
+			get{return GetConstraints(Oni.ConstraintType.Skin) as ObiSkinConstraints;}
 		}
 		public ObiDistanceConstraints DistanceConstraints{
-			get{return constraints[Oni.ConstraintType.Distance] as ObiDistanceConstraints;}
+			get{return GetConstraints(Oni.ConstraintType.Distance) as ObiDistanceConstraints;}
 		}
 		public ObiBendingConstraints BendingConstraints{
-			get{return constraints[Oni.ConstraintType.Bending] as ObiBendingConstraints;}
+			get{return GetConstraints(Oni.ConstraintType.Bending) as ObiBendingConstraints;}
 		}
 
-		public override void Awake()
+		public void Awake()
 		{
-			base.Awake();
 			SetupAnimatorController();
 		}
 	     
@@ -60,19 +59,12 @@ namespace Obi
 		public override bool AddToSolver(object info){
 			
 			if (Initialized && base.AddToSolver(info)){
-
-				solver.RequireRenderablePositions();
-
 				return true;
 			}
 			return false;
 		}
 		
 		public override bool RemoveFromSolver(object info){
-			
-			if (solver != null)
-				solver.RelinquishRenderablePositions();
-
 			return base.RemoveFromSolver(info);
 		}
 
@@ -133,7 +125,7 @@ namespace Obi
 	 	* Generates the particle based physical representation of the bone hierarcht. This is the initialization method for the actor
 		* and should not be called directly once the object has been created.
 	 	*/
-		public IEnumerator GeneratePhysicRepresentationForBones()
+		protected override IEnumerator Initialize()
 		{		
 			initialized = false;			
 			initializing = true;	
@@ -151,9 +143,10 @@ namespace Obi
 			positions = new Vector3[bones.Count];
 			velocities = new Vector3[bones.Count];
 			invMasses  = new float[bones.Count];
-			solidRadii = new float[bones.Count];
+			principalRadii = new Vector3[bones.Count];
 			phases = new int[bones.Count];
 			restPositions = new Vector4[bones.Count];
+			restOrientations = new Quaternion[bones.Count];
 			frozen = new bool[bones.Count];
 			
 			DistanceConstraints.Clear();
@@ -174,8 +167,9 @@ namespace Obi
 				invMasses[i] = 1.0f/DEFAULT_PARTICLE_MASS;
 				positions[i] = transform.InverseTransformPoint(bones[i].position);
 				restPositions[i] = positions[i];
-				restPositions[i][3] = 0;
-				solidRadii[i] = particleRadius;
+				restPositions[i][3] = 1;
+				restOrientations[i] = Quaternion.identity;
+				principalRadii[i] = new Vector3(particleRadius,particleRadius,particleRadius);
 				frozen[i] = false;
 				phases[i] = Oni.MakePhase(1,selfCollisions?Oni.ParticlePhase.SelfCollide:0);
 
@@ -197,10 +191,10 @@ namespace Obi
 
 							Transform parent = bones[parentIndices[i]];
 			
-							float[] restPositions = new float[]{parent.position[0],parent.position[1],parent.position[2],
+							float[] bendRestPositions = new float[]{parent.position[0],parent.position[1],parent.position[2],
 																child.position[0],child.position[1],child.position[2],
 																bones[i].position[0],bones[i].position[1],bones[i].position[2]};
-							float restBend = Oni.BendingConstraintRest(restPositions);
+							float restBend = Oni.BendingConstraintRest(bendRestPositions);
 		
 							// add bend constraint between the bone, its parent and its child.
 							bendingBatch.AddConstraint(parentIndices[i],childIndex,i,restBend,0,0);
@@ -228,21 +222,15 @@ namespace Obi
 			// manually update animator (before particle physics):
 
 			// TODO: update root bone here if animator is deactiavted.
-			if (animatorController != null)
-				animatorController.UpdateAnimation();
-	
-			Vector4[] simulationPosition = {Vector4.zero};
+			//if (animatorController != null)
+				//animatorController.UpdateAnimation();
 	
 			// build local to simulation space transform:
-			Matrix4x4 l2sTransform;
-			if (Solver.simulateInLocalSpace)
-				l2sTransform = Solver.transform.worldToLocalMatrix * ActorLocalToWorldMatrix;
-			else 
-				l2sTransform = ActorLocalToWorldMatrix;
+			Matrix4x4 l2sTransform = ActorLocalToSolverMatrix;
 	
-			Matrix4x4 delta = Solver.transform.worldToLocalMatrix * Solver.LastTransform;
+			//Matrix4x4 delta = Solver.transform.worldToLocalMatrix * Solver.LastTransform;
 
-			ObiSkinConstraintBatch skinConstraints = (ObiSkinConstraintBatch)SkinConstraints.GetBatches()[0];
+			ObiSkinConstraintBatch skinConstraints = SkinConstraints.GetFirstBatch();
 
 			// transform fixed particles:
 			for(int i = 0; i < particleIndices.Length; i++){
@@ -251,31 +239,23 @@ namespace Obi
 	
 				if (!actorEnabled || invMasses[i] == 0){
 	
-					simulationPosition[0] = solverSpaceBone;
-					Oni.SetParticlePositions(solver.OniSolver,simulationPosition,1,particleIndices[i]);
+					//simulationPosition[0] = solverSpaceBone;
+					//Oni.SetParticlePositions(solver.OniSolver,simulationPosition,1,particleIndices[i]);
+					solver.positions[particleIndices[i]] = solverSpaceBone;
 	
-				}else if (Solver.simulateInLocalSpace){
+				}/*else if (Solver.simulateInLocalSpace){
 	
 					Oni.GetParticlePositions(solver.OniSolver,simulationPosition,1,particleIndices[i]);
 					simulationPosition[0] = Vector3.Lerp(simulationPosition[0],delta.MultiplyPoint3x4(simulationPosition[0]),worldVelocityScale);
 					Oni.SetParticlePositions(solver.OniSolver,simulationPosition,1,particleIndices[i]);
 	
-				}
+				}*/
 
 				skinConstraints.skinPoints[i] = solverSpaceBone;
 
 			}
 
 			skinConstraints.PushDataToSolver(SkinConstraints);
-		}
-
-		public override void OnSolverStepEnd(){	
-
-			base.OnSolverStepEnd();
-
-			if (animatorController != null)
-				animatorController.ResetUpdateFlag();
-
 		}
 
 		/**

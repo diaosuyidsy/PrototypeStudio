@@ -18,7 +18,7 @@ namespace Obi{
 			oniShape = IntPtr.Zero;
 		}
 
-		public abstract void UpdateIfNeeded ();
+		public abstract bool UpdateIfNeeded ();
 
 	}
 

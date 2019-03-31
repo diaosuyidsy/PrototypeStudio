@@ -33,7 +33,7 @@ namespace Obi{
 			GameObject c = new GameObject("Obi Emitter");
 			Undo.RegisterCreatedObjectUndo(c,"Create Obi Emitter");
 			c.AddComponent<ObiEmitter>();
-			//c.AddComponent<ObiEmitterShapeDisk>();
+			c.AddComponent<ObiEmitterShapeDisk>();
 			c.AddComponent<ObiParticleRenderer>();
 		}
 
@@ -44,7 +44,7 @@ namespace Obi{
 			GameObject c = new GameObject("Obi Emitter");
 			Undo.RegisterCreatedObjectUndo(c,"Create Obi Emitter");
 			ObiEmitter em = c.AddComponent<ObiEmitter>();
-			//c.AddComponent<ObiEmitterShapeDisk>();
+			c.AddComponent<ObiEmitterShapeDisk>();
 			c.AddComponent<ObiParticleRenderer>();
 
 			ObiSolver solver = c.AddComponent<ObiSolver>();
@@ -69,6 +69,7 @@ namespace Obi{
 			for(int i = 0; i < emitter.positions.Length; i++)
 			{
 				wsPositions[i] = emitter.GetParticlePosition(i);
+				wsOrientations[i] = emitter.GetParticleOrientation(i);	
 				facingCamera[i] = true;		
 			}
 
@@ -109,40 +110,10 @@ namespace Obi{
 
 			EditorGUILayout.HelpBox("Active particles:"+ emitter.ActiveParticles,MessageType.Info);
 
-			EditorGUI.BeginChangeCheck();
-			ObiSolver solver = EditorGUILayout.ObjectField("Solver",emitter.Solver, typeof(ObiSolver), true) as ObiSolver;
-			if (EditorGUI.EndChangeCheck()){
-				Undo.RecordObject(emitter, "Set solver");
-				emitter.Solver = solver;
-			}
-
-			EditorGUI.BeginChangeCheck();
-			ObiCollisionMaterial material = EditorGUILayout.ObjectField("Collision Material",emitter.CollisionMaterial, typeof(ObiCollisionMaterial), false) as ObiCollisionMaterial;
-			if (EditorGUI.EndChangeCheck()){
-				Undo.RecordObject(emitter, "Set collision material");
-				emitter.CollisionMaterial = material;
-			}
-
-			EditorGUI.BeginChangeCheck();
-			ObiEmitterMaterial emitterMaterial = EditorGUILayout.ObjectField(new GUIContent("Emitter Material","Emitter material used. This controls the behavior of the emitted particles."),
-																  emitter.EmitterMaterial, typeof(ObiEmitterMaterial), false) as ObiEmitterMaterial;
-			if (EditorGUI.EndChangeCheck()){
-				Undo.RecordObject(emitter, "Set emitter material");
-				emitter.EmitterMaterial = emitterMaterial;
-			}
-
-			EditorGUI.BeginChangeCheck();
-			int numParticles = EditorGUILayout.IntField(new GUIContent("Num particles","Amount of pooled particles used by this emitter."), emitter.NumParticles);
-			if (EditorGUI.EndChangeCheck()){
-				Undo.RecordObject(emitter, "Set num particles");
-				emitter.NumParticles = numParticles;
-			}
-
 			Editor.DrawPropertiesExcluding(serializedObject,"m_Script");
 			
 			// Apply changes to the serializedProperty
 			if (GUI.changed){
-				emitter.UpdateParticlePhases(); //TODO: only do this when changing material.
 				serializedObject.ApplyModifiedProperties();
 			}
 			

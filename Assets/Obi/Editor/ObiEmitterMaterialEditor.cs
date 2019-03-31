@@ -34,9 +34,7 @@ namespace Obi{
 		
 		public override void OnInspectorGUI() {
 			
-			serializedObject.UpdateIfRequiredOrScript();
-			
-			ObiEmitterMaterial.MaterialChanges changes = ObiEmitterMaterial.MaterialChanges.PER_MATERIAL_DATA | ObiEmitterMaterial.MaterialChanges.PER_PARTICLE_DATA;			
+			serializedObject.UpdateIfRequiredOrScript();		
 
 			Editor.DrawPropertiesExcluding(serializedObject,"m_Script");
 
@@ -52,7 +50,7 @@ namespace Obi{
 				
 				serializedObject.ApplyModifiedProperties();
 
-				material.CommitChanges(changes);
+				material.CommitChanges();
 				
 			}
 			

@@ -41,6 +41,7 @@ namespace Obi{
 			for(int i = 0; i < bone.positions.Length; i++)
 			{
 				wsPositions[i] = bone.GetParticlePosition(i);
+				wsOrientations[i] = bone.GetParticleOrientation(i);	
 				facingCamera[i] = true;		
 			}
 
@@ -53,7 +54,7 @@ namespace Obi{
 							bone.invMasses[index] = 1.0f / Mathf.Max(value,0.00001f);
 						break; 
 					case ParticleProperty.Radius:
-							bone.solidRadii[index] = value;
+							bone.principalRadii[index] = Vector3.one * value;
 						break;
 					case BoneParticleProperty.Frozen:
 							bone.frozen[index] = value >= 1;
@@ -68,7 +69,7 @@ namespace Obi{
 					case ParticleProperty.Mass:
 						return 1.0f/bone.invMasses[index];
 					case ParticleProperty.Radius:
-						return bone.solidRadii[index];
+						return bone.principalRadii[index][0];
 					case BoneParticleProperty.Frozen:
 						return bone.frozen[index] ? 1 : 0;
 				}
@@ -92,14 +93,18 @@ namespace Obi{
 
 			if (GUILayout.Button("Initialize")){
 				if (!bone.Initialized){
-					CoroutineJob job = new CoroutineJob();
-					routine = EditorCoroutine.StartCoroutine(job.Start(bone.GeneratePhysicRepresentationForBones()));
 					EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+					CoroutineJob job = new CoroutineJob();
+					routine = job.Start(bone.GeneratePhysicRepresentationForMesh());
+					EditorCoroutine.ShowCoroutineProgressBar("Generating physical representation...",ref routine);
+					EditorGUIUtility.ExitGUI();
 				}else{
 					if (EditorUtility.DisplayDialog("Actor initialization","Are you sure you want to re-initialize this actor?","Ok","Cancel")){
-						CoroutineJob job = new CoroutineJob();
-						routine = EditorCoroutine.StartCoroutine(job.Start(bone.GeneratePhysicRepresentationForBones()));
 						EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+						CoroutineJob job = new CoroutineJob();
+						routine = job.Start(bone.GeneratePhysicRepresentationForMesh());
+						EditorCoroutine.ShowCoroutineProgressBar("Generating physical representation...",ref routine);
+						EditorGUIUtility.ExitGUI();
 					}
 				}
 			}
@@ -118,9 +123,6 @@ namespace Obi{
 			}
 
 			Editor.DrawPropertiesExcluding(serializedObject,"m_Script","chainLinks");
-
-			// Progress bar:
-			EditorCoroutine.ShowCoroutineProgressBar("Generating physical representation...",routine);
 			
 			// Apply changes to the serializedProperty
 			if (GUI.changed){

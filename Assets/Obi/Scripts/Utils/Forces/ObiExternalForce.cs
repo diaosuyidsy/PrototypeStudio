@@ -12,7 +12,7 @@ namespace Obi
 		public float turbulenceSeed = 0;
 		public ObiSolver[] affectedSolvers;
 
-		public void LateUpdate(){
+		public void FixedUpdate(){
 			foreach(ObiSolver solver in affectedSolvers){
 				if (solver != null)
 				foreach(ObiActor actor in solver.actors){

@@ -14,7 +14,7 @@ namespace Obi{
 			oniShape = Oni.CreateShape(Oni.ShapeType.Sphere);
 		}	
 
-		public override void UpdateIfNeeded (){
+		public override bool UpdateIfNeeded (){
 
 			SphereCollider sphere = collider as SphereCollider;
 	
@@ -23,8 +23,9 @@ namespace Obi{
 				center = sphere.center;
 				adaptor.Set(center, radius);
 				Oni.UpdateShape(oniShape,ref adaptor);
+				return true;
 			}
-
+			return false;
 		}
 
 	}

@@ -9,49 +9,39 @@ namespace Obi
 		public float radius = 5;
 		public bool radial = true;
 
-		public void OnEnable(){
-			foreach(ObiSolver solver in affectedSolvers)
-				solver.RequireRenderablePositions();
-		}
-
-		public void OnDisable(){
-			foreach(ObiSolver solver in affectedSolvers)
-				solver.RelinquishRenderablePositions();
-		}
-
 		public override void ApplyForcesToActor(ObiActor actor){
+
+			float sqrRadius = radius * radius;
+			float finalIntensity = intensity + GetTurbulence(turbulence);
 
 			Matrix4x4 l2sTransform;
 			if (actor.Solver.simulateInLocalSpace)
 				l2sTransform = actor.Solver.transform.worldToLocalMatrix * transform.localToWorldMatrix;
 			else 
 				l2sTransform = transform.localToWorldMatrix;
-			
-			Vector4 directionalForce = l2sTransform.MultiplyVector(Vector3.forward * (intensity + GetTurbulence(turbulence)));
 
-			float sqrRadius = radius * radius;
-
-			// Allocate forces array:
-			Vector4[] forces = new Vector4[actor.particleIndices.Length];
-			Vector4 center = new Vector4(transform.position.x,transform.position.y,transform.position.z);
+			Vector4 center = l2sTransform.MultiplyPoint3x4(Vector4.zero);
+			Vector4 forward = l2sTransform.MultiplyVector(Vector3.forward);
 
 			// Calculate force intensity for each actor particle:
-			for (int i = 0; i < forces.Length; ++i){
+			for (int i = 0; i < actor.particleIndices.Length; ++i){
 
-				Vector4 distanceVector = actor.Solver.renderablePositions[actor.particleIndices[i]] - center;
+				Vector4 distanceVector = actor.Solver.positions[actor.particleIndices[i]] - center;
 
 				float sqrMag = distanceVector.sqrMagnitude;
 				float falloff = Mathf.Clamp01((sqrRadius - sqrMag) / sqrRadius);
 
+				Vector4 force;
 				if (radial)
-					forces[i] = distanceVector/(Mathf.Sqrt(sqrMag) + float.Epsilon) * falloff * intensity;
+					force = distanceVector/(Mathf.Sqrt(sqrMag) + float.Epsilon) * falloff * finalIntensity;
 				else
-					forces[i] = directionalForce * falloff;
+					force = forward * falloff * finalIntensity;
 
-				forces[i][3] = actor.UsesCustomExternalForces ? 1 : 0;
+				if (actor.UsesCustomExternalForces)
+					actor.Solver.wind[actor.particleIndices[i]] += force;
+				else
+					actor.Solver.externalForces[actor.particleIndices[i]] += force;	
 			}			
-
-			Oni.AddParticleExternalForces(actor.Solver.OniSolver,forces,actor.particleIndices,actor.particleIndices.Length);
 
 		}
 

@@ -15,7 +15,7 @@ namespace Obi{
 			oniShape = Oni.CreateShape(Oni.ShapeType.Capsule);
 		}	
 	
-		public override void UpdateIfNeeded (){
+		public override bool UpdateIfNeeded (){
 
 			CapsuleCollider2D capsule = collider as CapsuleCollider2D;
 	
@@ -32,8 +32,9 @@ namespace Obi{
 							capsule.direction == CapsuleDirection2D.Horizontal ? 0 : 1);
 
 				Oni.UpdateShape(oniShape,ref adaptor);
+				return true;
 			}
-
+			return false;
 		}
 
 	}

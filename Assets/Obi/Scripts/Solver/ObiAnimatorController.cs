@@ -7,35 +7,45 @@ namespace Obi
 	[DisallowMultipleComponent]
 	public class ObiAnimatorController : MonoBehaviour
 	{
-		bool updatedThisStep = false;
-		Animator animator;
+		private Animator animator;
+		private float lastUpdate;
+		private float updateDelta;
+
+		public float UpdateDelta{
+			get{return updateDelta;}
+		}
 
 		public void Awake(){
 			animator = GetComponent<Animator>();
+			lastUpdate = Time.time;
 		}
 
-		public void UpdateAnimation()
+		public void OnDisable(){
+			ResumeAutonomousUpdate();
+		}
+
+		public void UpdateAnimation(bool fixedUpdate)
 		{
-			if (animator != null && animator.enabled && !updatedThisStep){
+			// UpdateAnimation might becalled during FixedUpdate(), but we still need to account for the full frame's worth of animation.
+			// Since Time.deltaTime returns the fixed step during FixedUpdate(), we need to use our own delta.
+			updateDelta = Time.time - lastUpdate;
+			lastUpdate = Time.time;
 
-				#if UNITY_5_6_OR_NEWER
-					animator.playableGraph.Stop();
-				#else 
-					animator.Stop();
-				#endif
+			if (animator.updateMode == AnimatorUpdateMode.AnimatePhysics)
+				updateDelta = Time.fixedDeltaTime;
 
-				animator.Update(Time.fixedDeltaTime);
-				updatedThisStep = true;
+			// Note: when using AnimatorUpdateMode.Normal, the update method of your character controller 
+			// should be Update() instead of FixedUpdate() (ObiCharacterController.cs, in this case).
+
+			if (animator != null && isActiveAndEnabled && (animator.updateMode != AnimatorUpdateMode.AnimatePhysics || fixedUpdate)){
+				animator.enabled = false;
+				animator.Update(updateDelta);
 			}
 		}
 
-		public void ResetUpdateFlag(){
-			updatedThisStep = false;
-		}
-
 		public void ResumeAutonomousUpdate(){
-			if (animator != null && animator.enabled){
-				animator.playableGraph.Play();
+			if (animator != null){
+				animator.enabled = true;
 			}
 		}
 	}

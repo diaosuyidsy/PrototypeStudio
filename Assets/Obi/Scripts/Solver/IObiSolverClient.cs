@@ -5,17 +5,27 @@ namespace Obi{
 
 	[System.Flags]
 	public enum ParticleData{
+
 		NONE = 0,
 		ACTIVE_STATUS = 1 << 0,
-		ACTOR_ID = 1 << 1,
-		POSITIONS = 1 << 2,
-		VELOCITIES = 1 << 3,
-		INV_MASSES = 1 << 4,
-		VORTICITIES = 1 << 5,
-		SOLID_RADII = 1 << 6,
-		PHASES = 1 << 7,
-		REST_POSITIONS = 1 << 8,
-		COLLISION_MATERIAL = 1 << 9,
+
+		POSITIONS = 1 << 1,
+		REST_POSITIONS = 1 << 2,
+
+		ORIENTATIONS = 1 << 3,
+		REST_ORIENTATIONS = 1 << 4,
+
+		VELOCITIES = 1 << 5,
+		ANGULAR_VELOCITIES = 1 << 6,
+		VORTICITIES = 1 << 7,
+
+		INV_MASSES = 1 << 8,
+		INV_ROTATIONAL_MASSES = 1 << 9,
+
+		PHASES = 1 << 10,
+		PRINCIPAL_RADII = 1 << 11,
+		COLLISION_MATERIAL = 1 << 12,
+
 		ALL = ~0
 	}
 

@@ -13,58 +13,102 @@ namespace Obi{
 	public class ObiCollider : ObiColliderBase
 	{
 
+		[SerializeProperty("SourceCollider")]
+		[SerializeField] private Collider sourceCollider;
+
+		public Collider SourceCollider{
+			set{
+				if (value != null && value.gameObject != this.gameObject){
+					Debug.LogError("The Collider component must reside in the same GameObject as ObiCollider.");
+					return;
+				}
+
+				sourceCollider = value;
+				RemoveCollider();
+				AddCollider();
+				
+			}
+			get{return sourceCollider;}
+		}
+
+		[SerializeProperty("UseDistanceFields")]
+		[SerializeField] private bool useDistanceFields = false;
+
+		public bool UseDistanceFields{
+			set{
+				if (useDistanceFields != value){
+
+					useDistanceFields = value;
+					CreateTracker();
+
+				}
+			}
+			get{return useDistanceFields;}
+		}
+
+		[Indent]
+		[VisibleIf("useDistanceFields")]
+		public ObiDistanceField distanceField; /**< Distance field used by this collider.*/
+
 		/**
 		 * Creates an OniColliderTracker of the appropiate type.
    		 */
 		protected override void CreateTracker(){ 
 
-			if (unityCollider is SphereCollider)
-				tracker = new ObiSphereShapeTracker((SphereCollider)unityCollider);
-			else if (unityCollider is BoxCollider)
-				tracker = new ObiBoxShapeTracker((BoxCollider)unityCollider);
-			else if (unityCollider is CapsuleCollider)
-				tracker = new ObiCapsuleShapeTracker((CapsuleCollider)unityCollider);
-			else if (unityCollider is CharacterController)
-				tracker = new ObiCapsuleShapeTracker((CharacterController)unityCollider);
-			else if (unityCollider is TerrainCollider)
-				tracker = new ObiTerrainShapeTracker((TerrainCollider)unityCollider);
-			else if (unityCollider is MeshCollider)
-				tracker = new ObiMeshShapeTracker((MeshCollider)unityCollider);
-			else 
-				Debug.LogWarning("Collider type not supported by Obi.");
+			if (useDistanceFields)
+				tracker = new ObiDistanceFieldShapeTracker(distanceField);
+			else{
+
+				if (sourceCollider is SphereCollider)
+					tracker = new ObiSphereShapeTracker((SphereCollider)sourceCollider);
+				else if (sourceCollider is BoxCollider)
+					tracker = new ObiBoxShapeTracker((BoxCollider)sourceCollider);
+				else if (sourceCollider is CapsuleCollider)
+					tracker = new ObiCapsuleShapeTracker((CapsuleCollider)sourceCollider);
+				else if (sourceCollider is CharacterController)
+					tracker = new ObiCapsuleShapeTracker((CharacterController)sourceCollider);
+				else if (sourceCollider is TerrainCollider)
+					tracker = new ObiTerrainShapeTracker((TerrainCollider)sourceCollider);
+				else if (sourceCollider is MeshCollider){
+					tracker = new ObiMeshShapeTracker((MeshCollider)sourceCollider);
+				}else 
+					Debug.LogWarning("Collider type not supported by Obi.");
+
+			}
 
 		}
-	
-		protected override bool IsUnityColliderEnabled(){
-			return ((Collider)unityCollider).enabled;
-		}
 
-		protected override void UpdateColliderAdaptor(){
-
-			adaptor.Set((Collider)unityCollider,phase, thickness);
-
-			foreach(ObiSolver solver in solvers){
-				if (solver.simulateInLocalSpace){
-
-					adaptor.SetSpaceTransform(solver.transform);
-
-					if (solvers.Count > 1){
-						Debug.LogWarning("ObiColliders used by ObiSolvers simulating in local space cannot be shared by multiple solvers."+
-								 		 "Please duplicate the collider if you want to use it in other solvers.");
-						return;
-					}
+		/*public void OnDrawGizmos()
+		{
+			if (tracker is ObiDistanceFieldShapeTracker)
+			{
+				if (tracker.OniShape != IntPtr.Zero && ((ObiDistanceFieldShapeTracker)tracker).distanceField != null){
+				
+					Gizmos.matrix = transform.localToWorldMatrix;
+					((ObiDistanceFieldShapeTracker)tracker).distanceField.Visualize();
 				}
 			}
+		}*/
+	
+		protected override Component GetUnityCollider(ref bool enabled){
+
+			if (sourceCollider != null)
+				enabled = sourceCollider.enabled;
+
+			return sourceCollider;
 		}
 
-		protected override void Awake(){
+		protected override void UpdateAdaptor(){
+			adaptor.Set(sourceCollider, Phase, Thickness);
+			Oni.UpdateCollider(oniCollider,ref adaptor);
+		}
 
-			unityCollider = GetComponent<Collider>(); 
+		private void Awake(){
 
-			if (unityCollider == null)
-				return;
-
-			base.Awake();
+			if (SourceCollider == null)
+				SourceCollider = GetComponent<Collider>(); 
+			else
+				AddCollider();
 		}
 
 	}

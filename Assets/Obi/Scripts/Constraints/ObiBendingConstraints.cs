@@ -2,6 +2,7 @@ using UnityEngine;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Obi{
 
@@ -24,8 +25,12 @@ public class ObiBendingConstraints : ObiBatchedConstraints
 		return Oni.ConstraintType.Bending;
 	}
 
-	public override List<ObiConstraintBatch> GetBatches(){
-		return batches.ConvertAll(x => (ObiConstraintBatch)x);
+	public override IEnumerable<ObiConstraintBatch> GetBatches(){
+		return batches.Cast<ObiConstraintBatch>();
+	}
+
+	public ObiBendConstraintBatch GetFirstBatch(){
+		return batches.Count > 0 ? batches[0] : null;
 	}
 
 	public override void Clear(){
@@ -44,7 +49,7 @@ public class ObiBendingConstraints : ObiBatchedConstraints
 
 	public void OnDrawGizmosSelected(){
 
-		if (!visualize) return;
+		if (!visualize || !isActiveAndEnabled) return;
 
 		Gizmos.color = new Color(0.5f,0,1,1);
 

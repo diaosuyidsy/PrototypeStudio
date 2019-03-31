@@ -37,9 +37,9 @@ namespace Obi{
 				List<int> selectedPins = new List<int>();
 				List<int> removedPins = new List<int>();
 
-				if (constraints.GetBatches().Count > 0){
+				if (constraints.GetFirstBatch() != null){
 
-					ObiPinConstraintBatch batch = (ObiPinConstraintBatch)constraints.GetBatches()[0];
+					ObiPinConstraintBatch batch = constraints.GetFirstBatch();
 						
 					// Get the list of pin constraints from the selected particles:
 					for (int i = 0; i < batch.ConstraintCount; i++){
@@ -65,11 +65,12 @@ namespace Obi{
 							
 							EditorGUI.BeginChangeCheck();
 							bool allowSceneObjects = !EditorUtility.IsPersistent(target);
-							batch.pinBodies[i] = EditorGUILayout.ObjectField("Pinned to:",batch.pinBodies[i],typeof(ObiCollider),allowSceneObjects) as ObiCollider;
+							batch.pinBodies[i] = EditorGUILayout.ObjectField("Pinned to:",batch.pinBodies[i],typeof(ObiColliderBase),allowSceneObjects) as ObiColliderBase;
 							
 							// Calculate initial pin offset value after changing the rigidbody.
 							if (EditorGUI.EndChangeCheck() && batch.pinBodies[i] != null){
 								batch.pinOffsets[i] = batch.pinBodies[i].transform.InverseTransformPoint(constraints.Actor.GetParticlePosition(batch.pinIndices[i]));
+								batch.restDarbouxVectors[i] = ObiUtils.RestDarboux(constraints.Actor.GetParticleOrientation(batch.pinIndices[i]),batch.pinBodies[i].transform.rotation);
 							}
 							
 							Color oldColor = GUI.color;
@@ -117,7 +118,7 @@ namespace Obi{
 			
 						for(int i = 0; i < ObiParticleActorEditor.selectionStatus.Length; i++){
 							if (ObiParticleActorEditor.selectionStatus[i]){
-								batch.AddConstraint(i,null,Vector3.zero,0);
+								batch.AddConstraint(i,null,Vector3.zero,Quaternion.identity,0);
 							}
 						}
 	
@@ -168,12 +169,12 @@ namespace Obi{
 			ObiParticleActorEditor[] editors = (ObiParticleActorEditor[])Resources.FindObjectsOfTypeAll(typeof(ObiParticleActorEditor));
  			
 			// If there's any particle actor editor active, we can show pin constraints:
-			if (editors.Length >0 && constraints.GetBatches().Count > 0)
+			if (editors.Length > 0 && constraints.GetFirstBatch() != null)
  			{
 
 				Handles.color = Color.cyan;
 		
-				ObiPinConstraintBatch batch = (ObiPinConstraintBatch)constraints.GetBatches()[0];
+				ObiPinConstraintBatch batch = constraints.GetFirstBatch();
 
 				// Get the list of pin constraints from the selected particles:
 				foreach (int i in batch.ActiveConstraints){

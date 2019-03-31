@@ -14,13 +14,6 @@ namespace Obi{
 	public class ObiParticleHandleEditor : Editor
 	{
 
-		[MenuItem("Component/Physics/Obi/Obi Particle Renderer",false,0)]
-		static void AddObiParticleRenderer()
-		{
-			foreach(Transform t in Selection.transforms)
-				Undo.AddComponent<ObiParticleRenderer>(t.gameObject);
-		}
-
 		[MenuItem("GameObject/3D Object/Obi/Utils/Obi Particle Renderer",false)]
 		static void CreateObiParticleRenderer()
 		{

@@ -10,71 +10,40 @@ namespace Obi{
 
 	[ExecuteInEditMode]
 	[RequireComponent(typeof(Rigidbody))]
-	public class ObiRigidbody : MonoBehaviour
+	public class ObiRigidbody : ObiRigidbodyBase
 	{
-		public bool kinematicForParticles = false;
-
-		private IntPtr oniRigidbody = IntPtr.Zero;
 		private Rigidbody unityRigidbody;
-		private bool dirty = true;
 
-		private Oni.Rigidbody adaptor = new Oni.Rigidbody();
-		private Oni.RigidbodyVelocities oniVelocities = new Oni.RigidbodyVelocities();
-
-		private Vector3 velocity, angularVelocity;
-
-		public IntPtr OniRigidbody {
-			get{return oniRigidbody;}
-		}
-
-		public void Awake(){
+		public override void Awake(){
 			unityRigidbody = GetComponent<Rigidbody>();
-			oniRigidbody = Oni.CreateRigidbody();
-			UpdateIfNeeded();
+			base.Awake();
 		}
 
-		public void OnDestroy(){
-			Oni.DestroyRigidbody(oniRigidbody);
-			oniRigidbody = IntPtr.Zero;
-		}
+		public override void UpdateIfNeeded(object sender, EventArgs e){
 
-		public void UpdateIfNeeded(){
+			velocity = unityRigidbody.velocity;
+			angularVelocity = unityRigidbody.angularVelocity;
 
-			if (dirty){
-
-				velocity = unityRigidbody.velocity;
-				angularVelocity = unityRigidbody.angularVelocity;
-
-				adaptor.Set(unityRigidbody,kinematicForParticles);
-				Oni.UpdateRigidbody(oniRigidbody,ref adaptor);
-
-				dirty = false;
-
-			}
+			adaptor.Set(unityRigidbody,kinematicForParticles);
+			Oni.UpdateRigidbody(oniRigidbody,ref adaptor);
 
 		}
 
 		/**
 		 * Reads velocities back from the solver.
 		 */
-		public void UpdateVelocities(){
+		public override void UpdateVelocities(object sender, EventArgs e){
 
-			if (!dirty){
+			// kinematic rigidbodies are passed to Obi with zero velocity, so we must ignore the new velocities calculated by the solver:
+			if (Application.isPlaying && (unityRigidbody.isKinematic || !kinematicForParticles)){
 
-				// kinematic rigidbodies are passed to Obi with zero velocity, so we must ignore the new velocities calculated by the solver:
-				if (unityRigidbody.isKinematic || !kinematicForParticles){
-
-					Oni.GetRigidbodyVelocity(oniRigidbody,ref oniVelocities);	
-					unityRigidbody.velocity += oniVelocities.linearVelocity - velocity;
-					unityRigidbody.angularVelocity += oniVelocities.angularVelocity - angularVelocity;
-
-				}
-
-				dirty = true;
+				Oni.GetRigidbodyVelocity(oniRigidbody,ref oniVelocities);	
+				unityRigidbody.velocity += oniVelocities.linearVelocity - velocity;
+				unityRigidbody.angularVelocity += oniVelocities.angularVelocity - angularVelocity;
 
 			}
-
 		}
+
 	}
 }
 

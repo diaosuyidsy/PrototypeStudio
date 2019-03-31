@@ -15,7 +15,6 @@ namespace Obi{
 	{
 		
 		ObiTetherConstraints constraints;
-		ObiActor.TetherType tetherType;
 		
 		public void OnEnable(){
 			constraints = (ObiTetherConstraints)target;
@@ -39,15 +38,12 @@ namespace Obi{
 						Undo.RegisterCompleteObjectUndo(constraints, "Generate tethers");
 	
 						constraints.RemoveFromSolver(null);
-						if (!constraints.Actor.GenerateTethers(tetherType)){
+						if (!constraints.Actor.GenerateTethers()){
 							Debug.LogWarning("Could not generate tethers. Make sure the actor has been properly initialized.");
 						}
 						constraints.AddToSolver(null);
 					}
 				}
-	
-				if (constraints.Actor is ObiRope)
-					tetherType = (ObiActor.TetherType)EditorGUILayout.EnumPopup(tetherType);
 
 			GUILayout.EndHorizontal();
 

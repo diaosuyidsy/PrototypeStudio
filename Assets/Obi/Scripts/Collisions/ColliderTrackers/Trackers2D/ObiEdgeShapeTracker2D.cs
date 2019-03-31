@@ -49,7 +49,7 @@ namespace Obi{
 			}
 		}
 	
-		public override void UpdateIfNeeded (){
+		public override bool UpdateIfNeeded (){
 
 			EdgeCollider2D edge = collider as EdgeCollider2D;
 	
@@ -60,8 +60,9 @@ namespace Obi{
 				edgeDataHasChanged = false;
 				adaptor.Set(pointsHandle.AddrOfPinnedObject(),indicesHandle.AddrOfPinnedObject(),edge.pointCount,edge.edgeCount*2);
 				Oni.UpdateShape(oniShape,ref adaptor);
+				return true;
 			}			
-
+			return false;
 		}
 
 		public override void Destroy(){

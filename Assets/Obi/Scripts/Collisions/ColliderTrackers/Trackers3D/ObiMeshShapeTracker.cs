@@ -95,7 +95,7 @@ namespace Obi{
 			}
 		}
 	
-		public override void UpdateIfNeeded (){
+		public override bool UpdateIfNeeded (){
 
 			MeshCollider meshCollider = collider as MeshCollider;
 	
@@ -107,9 +107,10 @@ namespace Obi{
 					meshDataHasChanged = false;
 					adaptor.Set(handles.VerticesAddress,handles.IndicesAddress,mesh.vertexCount,mesh.triangles.Length);
 					Oni.UpdateShape(oniShape,ref adaptor);
+					return true;
 				}			
 			}
-
+			return false;
 		}
 
 		public override void Destroy(){
