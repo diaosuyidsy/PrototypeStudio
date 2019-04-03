@@ -1,0 +1,207 @@
+fileFormatVersion: 2
+guid: 93616aee28b3de44d9d1c697a4ac5187
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Body_Nofoot:Body_NoFoot
+    100002: EyeBrows
+    100004: Hair_1_polySurface10
+    100006: Hair_1_polySurface11
+    100008: Hair_1_polySurface12
+    100010: Hair_1_polySurface13
+    100012: Hair_1_polySurface14
+    100014: Hair_1_polySurface15
+    100016: Hair_1_polySurface16
+    100018: Hair_1_polySurface17
+    100020: Hair_1_polySurface18
+    100022: Hair_1_polySurface19
+    100024: Hair_1_polySurface4
+    100026: Hair_1_polySurface5
+    100028: Hair_1_polySurface7
+    100030: Hair_1_polySurface8
+    100032: Hair_1_polySurface9
+    100034: polySurface1
+    100036: polySurface6_Hair_1
+    100038: //RootNode
+    400000: Body_Nofoot:Body_NoFoot
+    400002: EyeBrows
+    400004: Hair_1_polySurface10
+    400006: Hair_1_polySurface11
+    400008: Hair_1_polySurface12
+    400010: Hair_1_polySurface13
+    400012: Hair_1_polySurface14
+    400014: Hair_1_polySurface15
+    400016: Hair_1_polySurface16
+    400018: Hair_1_polySurface17
+    400020: Hair_1_polySurface18
+    400022: Hair_1_polySurface19
+    400024: Hair_1_polySurface4
+    400026: Hair_1_polySurface5
+    400028: Hair_1_polySurface7
+    400030: Hair_1_polySurface8
+    400032: Hair_1_polySurface9
+    400034: polySurface1
+    400036: polySurface6_Hair_1
+    400038: //RootNode
+    2100000: Body_Nofoot_Body_NoFootMat
+    2100002: EyeBrowsMat
+    2100004: Hair_1_polySurface10Mat
+    2100006: Hair_1_polySurface11Mat
+    2100008: Hair_1_polySurface12Mat
+    2100010: Hair_1_polySurface13Mat
+    2100012: Hair_1_polySurface14Mat
+    2100014: Hair_1_polySurface15Mat
+    2100016: Hair_1_polySurface16Mat
+    2100018: Hair_1_polySurface17Mat
+    2100020: Hair_1_polySurface18Mat
+    2100022: Hair_1_polySurface19Mat
+    2100024: Hair_1_polySurface4Mat
+    2100026: Hair_1_polySurface5Mat
+    2100028: Hair_1_polySurface7Mat
+    2100030: Hair_1_polySurface8Mat
+    2100032: Hair_1_polySurface9Mat
+    2100034: polySurface1Mat
+    2100036: polySurface6_Hair_1Mat
+    2300000: Body_Nofoot:Body_NoFoot
+    2300002: EyeBrows
+    2300004: Hair_1_polySurface10
+    2300006: Hair_1_polySurface11
+    2300008: Hair_1_polySurface12
+    2300010: Hair_1_polySurface13
+    2300012: Hair_1_polySurface14
+    2300014: Hair_1_polySurface15
+    2300016: Hair_1_polySurface16
+    2300018: Hair_1_polySurface17
+    2300020: Hair_1_polySurface18
+    2300022: Hair_1_polySurface19
+    2300024: Hair_1_polySurface4
+    2300026: Hair_1_polySurface5
+    2300028: Hair_1_polySurface7
+    2300030: Hair_1_polySurface8
+    2300032: Hair_1_polySurface9
+    2300034: polySurface1
+    2300036: polySurface6_Hair_1
+    3300000: Body_Nofoot:Body_NoFoot
+    3300002: EyeBrows
+    3300004: Hair_1_polySurface10
+    3300006: Hair_1_polySurface11
+    3300008: Hair_1_polySurface12
+    3300010: Hair_1_polySurface13
+    3300012: Hair_1_polySurface14
+    3300014: Hair_1_polySurface15
+    3300016: Hair_1_polySurface16
+    3300018: Hair_1_polySurface17
+    3300020: Hair_1_polySurface18
+    3300022: Hair_1_polySurface19
+    3300024: Hair_1_polySurface4
+    3300026: Hair_1_polySurface5
+    3300028: Hair_1_polySurface7
+    3300030: Hair_1_polySurface8
+    3300032: Hair_1_polySurface9
+    3300034: polySurface1
+    3300036: polySurface6_Hair_1
+    4300000: Body_Nofoot:Body_NoFoot
+    4300002: EyeBrows
+    4300004: Hair_1_polySurface10
+    4300006: Hair_1_polySurface11
+    4300008: Hair_1_polySurface12
+    4300010: Hair_1_polySurface13
+    4300012: Hair_1_polySurface14
+    4300014: Hair_1_polySurface15
+    4300016: Hair_1_polySurface16
+    4300018: Hair_1_polySurface17
+    4300020: Hair_1_polySurface18
+    4300022: Hair_1_polySurface19
+    4300024: Hair_1_polySurface4
+    4300026: Hair_1_polySurface5
+    4300028: Hair_1_polySurface7
+    4300030: Hair_1_polySurface8
+    4300032: Hair_1_polySurface9
+    4300034: polySurface1
+    4300036: polySurface6_Hair_1
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 0
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
